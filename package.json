@@ -38,7 +38,7 @@
     "zod": "^3.22.4"
   },
   "scripts": {
-    "start": "set PORT=3002 && react-scripts start",
+    "start": "react-scripts start",
     "build": "CI=false react-scripts build",
     "build:verify": "npm run build && node scripts/verify-build-assets.js",
     "verify-assets": "node scripts/verify-build-assets.js",
