@@ -1,0 +1,496 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+@import '@flaticon/flaticon-uicons/css/regular/rounded.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Poppins', sans-serif;
+  }
+  
+  body {
+    margin: 0;
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  code {
+    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+      monospace;
+  }
+
+  /* Hide number input spinners (Chrome, Safari, Edge, Opera) */
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  /* Hide number input spinners (Firefox) */
+  input[type='number'] {
+    -moz-appearance: textfield;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors;
+  }
+  
+  .btn-secondary {
+    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors;
+  }
+  
+  .btn-danger {
+    @apply bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors;
+  }
+  
+  .input-field {
+    @apply block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+  }
+  
+  .card {
+    @apply bg-white rounded-lg shadow-sm border p-6;
+  }
+
+  /* Fix for disappearing elements - Override problematic animations */
+  .animate-slideInUp {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+    animation: none !important;
+  }
+  
+  /* Custom scrollbar styles */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db #f3f4f6;
+    overflow-y: scroll !important;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    display: block;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #f3f4f6;
+    border-radius: 4px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 4px;
+    min-height: 40px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-corner {
+    background: #f3f4f6;
+  }
+  
+  /* Table scrolling styles */
+  .table-scroll-container {
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db #f3f4f6;
+    overflow-y: auto;
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .table-scroll-container::-webkit-scrollbar {
+    width: 8px;
+    display: block;
+  }
+  
+  .table-scroll-container::-webkit-scrollbar-track {
+    background: #f9fafb;
+    border-radius: 4px;
+    margin: 4px 0;
+  }
+  
+  .table-scroll-container::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 4px;
+    min-height: 40px;
+    border: 2px solid #f9fafb;
+  }
+  
+  .table-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+    border-color: #f3f4f6;
+  }
+  
+  .table-scroll-container::-webkit-scrollbar-thumb:active {
+    background: #6b7280;
+  }
+  
+  .table-scroll-container::-webkit-scrollbar-corner {
+    background: #f9fafb;
+  }
+  
+  /* Smooth scrolling for table */
+  .table-scroll-container {
+    scroll-behavior: smooth;
+  }
+  
+  /* Hover effect for scrollable table */
+  .table-scroll-container:hover::-webkit-scrollbar-thumb {
+    background: #9ca3af;
+  }
+
+  .table-scroll-container thead.sticky th:last-child {
+    border-top-right-radius: 8px;
+  }
+  
+  /* High-Performance Table Row Animations - 60fps Target */
+  .table-scroll-container tbody tr {
+    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: transform, box-shadow, background-color;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+  }
+  
+  .table-scroll-container tbody tr:hover {
+    transform: translateY(-2px) translateZ(0);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    background-color: #f8fafc;
+  }
+  
+  .table-scroll-container tbody tr:active {
+    transform: translateY(-1px) translateZ(0);
+    transition-duration: 0.1s;
+  }
+  
+  /* Smooth Row Entry Animations */
+  .table-row-enter {
+    opacity: 0;
+    transform: translateY(20px) translateZ(0);
+    animation: rowSlideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  }
+  
+  .table-row-enter:nth-child(1) { animation-delay: 0.05s; }
+  .table-row-enter:nth-child(2) { animation-delay: 0.1s; }
+  .table-row-enter:nth-child(3) { animation-delay: 0.15s; }
+  .table-row-enter:nth-child(4) { animation-delay: 0.2s; }
+  .table-row-enter:nth-child(5) { animation-delay: 0.25s; }
+  .table-row-enter:nth-child(6) { animation-delay: 0.3s; }
+  .table-row-enter:nth-child(7) { animation-delay: 0.35s; }
+  .table-row-enter:nth-child(8) { animation-delay: 0.4s; }
+  .table-row-enter:nth-child(9) { animation-delay: 0.45s; }
+  .table-row-enter:nth-child(10) { animation-delay: 0.5s; }
+  
+  /* Row Slide In Animation */
+  @keyframes rowSlideIn {
+    0% {
+      opacity: 0;
+      transform: translateY(20px) translateZ(0);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) translateZ(0);
+    }
+  }
+  
+  /* Enhanced Sort Indicator Animations */
+  .sort-indicator {
+    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: transform;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+  }
+  
+  .sort-indicator.asc {
+    transform: rotate(0deg) translateZ(0);
+  }
+  
+  .sort-indicator.desc {
+    transform: rotate(180deg) translateZ(0);
+  }
+  
+  /* Smooth Header Hover Effects */
+  .table-scroll-container thead th {
+    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: background-color, box-shadow;
+  }
+  
+  .table-scroll-container thead th:hover {
+    background-color: #f1f5f9;
+    box-shadow: inset 0 -2px 0 #3b82f6;
+  }
+  
+  /* Enhanced Button Animations */
+  .table-button {
+    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: transform, box-shadow, background-color;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+  }
+  
+  .table-button:hover {
+    transform: translateY(-1px) translateZ(0);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .table-button:active {
+    transform: translateY(0) translateZ(0);
+    transition-duration: 0.1s;
+  }
+  
+  /* Smooth Loading States */
+  .table-loading {
+    animation: tablePulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  @keyframes tablePulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+  
+  /* Enhanced Scrollbar Animations */
+  .table-scroll-container::-webkit-scrollbar-thumb {
+    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: background-color, border-color;
+  }
+  
+  .table-scroll-container:hover::-webkit-scrollbar-thumb {
+    background: #9ca3af;
+    border-color: #f3f4f6;
+  }
+  
+  /* Ensure proper spacing for sticky header */
+  .table-scroll-container tbody tr:first-child td {
+    border-top: none;
+  }
+  
+  /* Sticky table header styles */
+  .table-scroll-container thead.sticky {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  
+  .table-scroll-container thead.sticky th {
+    background: #f9fafb;
+    border-bottom: 2px solid #e5e7eb;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  }
+  
+  .table-scroll-container thead.sticky th:first-child {
+    border-top-left-radius: 8px;
+  }
+  
+  .table-scroll-container thead.sticky th:last-child {
+    border-top-right-radius: 8px;
+  }
+  
+  /* Smooth Filter Transitions */
+  .filter-transition {
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: opacity, transform, height;
+  }
+  
+  .filter-enter {
+    opacity: 0;
+    transform: scale(0.95) translateZ(0);
+    height: 0;
+  }
+  
+  .filter-enter-active {
+    opacity: 1;
+    transform: scale(1) translateZ(0);
+    height: auto;
+  }
+  
+  .filter-exit {
+    opacity: 1;
+    transform: scale(1) translateZ(0);
+    height: auto;
+  }
+  
+  .filter-exit-active {
+    opacity: 0;
+    transform: scale(0.95) translateZ(0);
+    height: 0;
+  }
+  
+  /* Performance Optimizations */
+  .table-scroll-container * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* GPU Acceleration for Smooth Animations */
+  .table-scroll-container tbody tr,
+  .table-scroll-container thead th,
+  .table-scroll-container .sort-indicator {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+  
+  /* StatCard Unique Design & Animations */
+  .stat-card-animation {
+    animation: statCardSlideIn 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    opacity: 1; /* Ensure cards are visible by default */
+    transform: translateY(0) translateZ(0);
+    will-change: transform, opacity, box-shadow;
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+  
+  .stat-card-animation:nth-child(1) { animation-delay: 0.1s; }
+  .stat-card-animation:nth-child(2) { animation-delay: 0.2s; }
+  .stat-card-animation:nth-child(3) { animation-delay: 0.3s; }
+  .stat-card-animation:nth-child(4) { animation-delay: 0.4s; }
+  
+  /* StatCard Slide In Animation */
+  @keyframes statCardSlideIn {
+    0% {
+      opacity: 0;
+      transform: translateY(20px) translateZ(0);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) translateZ(0);
+    }
+  }
+  
+  /* StatCard Content Animations */
+  .stat-content {
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: transform;
+  }
+  
+  .stat-card-animation:hover .stat-content {
+    transform: translateX(4px) translateZ(0);
+  }
+  
+  /* StatCard Title Animations */
+  .stat-title {
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: color;
+  }
+  
+  .stat-card-animation:hover .stat-title {
+    color: #4b5563;
+  }
+  
+  /* StatCard Value Animations */
+  .stat-value {
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: color, transform;
+  }
+  
+  .stat-card-animation:hover .stat-value {
+    color: #1f2937;
+    transform: scale(1.02) translateZ(0);
+  }
+  
+  /* StatCard Icon Container Animations */
+  .stat-icon-container {
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: transform, box-shadow;
+    backface-visibility: hidden;
+  }
+  
+  .stat-card-animation:hover .stat-icon-container {
+    transform: scale(1.1) rotate(3deg) translateZ(0);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* StatCard Icon Animations */
+  .stat-icon {
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: transform;
+  }
+  
+  /* StatCard Growth Section Animations */
+  .stat-growth-section {
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: transform;
+  }
+  
+  .stat-card-animation:hover .stat-growth-section {
+    transform: translateX(2px) translateZ(0);
+  }
+  
+  /* StatCard Growth Icon Animations */
+  .stat-growth-icon {
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: transform;
+  }
+  
+  .stat-card-animation:hover .stat-growth-icon {
+    transform: scale(1.1) translateZ(0);
+  }
+  
+  /* StatCard Growth Value Animations */
+  .stat-growth-value {
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: transform;
+  }
+  
+  .stat-card-animation:hover .stat-growth-value {
+    transform: scale(1.05) translateZ(0);
+  }
+  
+  /* StatCard Growth Label Animations */
+  .stat-growth-label {
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: color;
+  }
+  
+  .stat-card-animation:hover .stat-growth-label {
+    color: #6b7280;
+  }
+  
+  /* Enhanced Hover Effects for StatCards */
+  .stat-card-animation:hover {
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+    border-color: #e5e7eb;
+  }
+  
+  /* Active State for StatCards */
+  .stat-card-animation:active {
+    transform: translateY(-2px) scale(1.02) translateZ(0);
+    transition-duration: 0.1s;
+  }
+  
+  /* Focus States for StatCards */
+  .stat-card-animation:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+  }
+  
+  /* Performance Optimizations for StatCards */
+  .stat-card-animation * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* GPU Acceleration for StatCard Animations */
+  .stat-card-animation,
+  .stat-content,
+  .stat-title,
+  .stat-value,
+  .stat-icon-container,
+  .stat-icon,
+  .stat-growth-section,
+  .stat-growth-icon,
+  .stat-growth-value,
+  .stat-growth-label {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+}

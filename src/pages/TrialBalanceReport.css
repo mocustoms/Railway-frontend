@@ -1,0 +1,134 @@
+/* Trial Balance Report CSS */
+
+.trial-balance-tree-container {
+  background: white;
+  border-radius: 0;
+  min-width: 100%;
+}
+
+.trial-balance-tree-content {
+  background: white;
+}
+
+/* Header Row */
+.trial-balance-header {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto auto;
+  align-items: center;
+  padding: 12px 16px;
+  background: linear-gradient(to right, #eff6ff, #e0e7ff);
+  border-bottom: 2px solid #3b82f6;
+  gap: 12px;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #1e40af;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.trial-balance-header-toggle {
+  width: 36px;
+}
+
+.trial-balance-header-code {
+  min-width: 120px;
+}
+
+.trial-balance-header-name {
+  flex: 1;
+}
+
+.trial-balance-header-debit,
+.trial-balance-header-credit {
+  text-align: right;
+  min-width: 140px;
+  padding-right: 16px;
+}
+
+/* Footer Row */
+.trial-balance-footer {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto auto;
+  align-items: center;
+  padding: 16px;
+  background: #f9fafb;
+  border-top: 2px solid #d1d5db;
+  gap: 12px;
+  font-size: 1rem;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+}
+
+.trial-balance-footer-toggle {
+  width: 36px;
+}
+
+.trial-balance-footer-code {
+  min-width: 120px;
+}
+
+.trial-balance-footer-name {
+  flex: 1;
+  text-align: right;
+  padding-right: 8px;
+}
+
+.trial-balance-footer-debit,
+.trial-balance-footer-credit {
+  text-align: right;
+  min-width: 140px;
+  padding-right: 16px;
+  font-weight: 700;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.trial-balance-footer-difference {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  align-items: center;
+  padding: 12px 16px;
+  background: #fef2f2;
+  border-top: 1px solid #fecaca;
+  gap: 12px;
+  font-size: 0.875rem;
+}
+
+.trial-balance-footer-debit-credit {
+  grid-column: 4 / 6;
+  text-align: right;
+  padding-right: 8px;
+  font-weight: 700;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .trial-balance-header,
+  .trial-balance-footer,
+  .trial-balance-footer-difference {
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
+  }
+  
+  .trial-balance-header-debit,
+  .trial-balance-header-credit,
+  .trial-balance-footer-debit,
+  .trial-balance-footer-credit {
+    grid-column: 2;
+    text-align: left;
+  }
+  
+  .trial-balance-header-debit,
+  .trial-balance-footer-debit {
+    grid-row: 2;
+  }
+  
+  .trial-balance-header-credit,
+  .trial-balance-footer-credit {
+    grid-row: 3;
+  }
+}
+

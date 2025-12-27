@@ -1,0 +1,196 @@
+.adjustment-reason-view {
+  width: 100%;
+  max-width: 800px;
+}
+
+.view-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.view-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.edit-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.edit-btn:hover {
+  background: #5a67d8;
+  transform: translateY(-1px);
+}
+
+.edit-btn i {
+  font-size: 14px;
+}
+
+.view-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.view-section {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 16px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #d1d5db;
+}
+
+.view-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.view-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.view-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.view-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.view-value {
+  font-size: 14px;
+  color: #1f2937;
+  font-weight: 500;
+}
+
+.code-value {
+  font-family: 'Courier New', monospace;
+  background: #f3f4f6;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+/* Badges */
+.adjustment-type-badge,
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.adjustment-type-badge.add {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.adjustment-type-badge.deduct {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.status-badge.active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-badge.inactive {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.adjustment-type-badge i,
+.status-badge i {
+  font-size: 12px;
+}
+
+/* Account Information */
+.account-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.account-code {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.account-name {
+  font-size: 14px;
+  color: #1f2937;
+  font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .view-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  
+  .view-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .view-section {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .adjustment-reason-view {
+    padding: 0;
+  }
+  
+  .view-title {
+    font-size: 18px;
+  }
+  
+  .edit-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

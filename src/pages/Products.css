@@ -1,0 +1,327 @@
+/* Products Component Styles */
+
+/* Dashboard Container */
+.dashboard-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: calc(100vh - 80px);
+}
+
+/* Product Modules Grid */
+.product-modules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+/* Reuse the same module card styles from Accounts.css */
+.product-modules-grid .account-module-card {
+  position: relative;
+  background: white;
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+  color: inherit;
+  border: 2px solid transparent;
+  overflow: hidden;
+  animation: moduleCardSlideIn 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  opacity: 0;
+  transform: translateY(20px) translateZ(0);
+  will-change: transform, opacity, box-shadow;
+  backface-visibility: hidden;
+  perspective: 1000px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.product-modules-grid .account-module-card:nth-child(1) { animation-delay: 0.1s; }
+.product-modules-grid .account-module-card:nth-child(2) { animation-delay: 0.2s; }
+.product-modules-grid .account-module-card:nth-child(3) { animation-delay: 0.3s; }
+.product-modules-grid .account-module-card:nth-child(4) { animation-delay: 0.4s; }
+.product-modules-grid .account-module-card:nth-child(5) { animation-delay: 0.5s; }
+.product-modules-grid .account-module-card:nth-child(6) { animation-delay: 0.6s; }
+.product-modules-grid .account-module-card:nth-child(7) { animation-delay: 0.7s; }
+.product-modules-grid .account-module-card:nth-child(8) { animation-delay: 0.8s; }
+
+@keyframes moduleCardSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) translateZ(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) translateZ(0);
+  }
+}
+
+.product-modules-grid .account-module-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  border-radius: 1.5rem 1.5rem 0 0;
+  transition: all 0.3s ease;
+}
+
+.product-modules-grid .account-module-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  border-color: #667eea;
+}
+
+.product-modules-grid .account-module-card:hover::before {
+  height: 8px;
+}
+
+/* Gradient classes for different product module types */
+.product-modules-grid .account-module-card.catalog .module-icon {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+}
+
+.product-modules-grid .account-module-card.organization .module-icon {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.product-modules-grid .account-module-card.pricing .module-icon {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.product-modules-grid .account-module-card.import .module-icon {
+  background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+}
+
+/* Enhanced Product Card Animations - 60fps Target */
+.product-card-animation {
+  animation: productCardSlideIn 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  opacity: 0;
+  transform: translateY(20px) translateZ(0);
+  will-change: transform, opacity, box-shadow;
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+.product-card-animation:nth-child(1) { animation-delay: 0.1s; }
+.product-card-animation:nth-child(2) { animation-delay: 0.2s; }
+.product-card-animation:nth-child(3) { animation-delay: 0.3s; }
+.product-card-animation:nth-child(4) { animation-delay: 0.4s; }
+.product-card-animation:nth-child(5) { animation-delay: 0.5s; }
+.product-card-animation:nth-child(6) { animation-delay: 0.6s; }
+.product-card-animation:nth-child(7) { animation-delay: 0.7s; }
+.product-card-animation:nth-child(8) { animation-delay: 0.8s; }
+.product-card-animation:nth-child(9) { animation-delay: 0.9s; }
+.product-card-animation:nth-child(10) { animation-delay: 1.0s; }
+.product-card-animation:nth-child(11) { animation-delay: 1.1s; }
+.product-card-animation:nth-child(12) { animation-delay: 1.2s; }
+
+/* Product Card Slide In Animation */
+@keyframes productCardSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) translateZ(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) translateZ(0);
+  }
+}
+
+/* Enhanced Icon Animations */
+.product-card-icon {
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+.product-card-icon:hover {
+  transform: scale(1.1) rotate(3deg) translateZ(0);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Enhanced Title Animations */
+.product-card-title {
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  will-change: color, transform;
+}
+
+.product-card-animation:hover .product-card-title {
+  color: #3b82f6;
+  transform: translateX(4px) translateZ(0);
+}
+
+/* Enhanced Description Animations */
+.product-card-description {
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  will-change: color;
+}
+
+.product-card-animation:hover .product-card-description {
+  color: #4b5563;
+}
+
+/* Product Grid Animation Container */
+.product-grid-animation {
+  opacity: 1;
+}
+
+/* Enhanced Hover Effects */
+.product-card-animation:hover {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+  border-color: #3b82f6;
+  transform: translateY(-8px) scale(1.02) translateZ(0);
+}
+
+.product-card-animation:active {
+  transform: translateY(-4px) scale(0.98) translateZ(0);
+  transition-duration: 0.1s;
+}
+
+/* Focus States for Accessibility */
+.product-card-animation:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+}
+
+/* Performance Optimizations */
+.product-card-animation * {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* GPU Acceleration for Smooth Animations */
+.product-card-animation,
+.product-card-icon,
+.product-card-title,
+.product-card-description {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* No Results */
+.no-results {
+  text-align: center;
+  padding: 4rem 1.25rem;
+  color: #6b7280;
+  font-size: 1.125rem;
+  font-weight: 500;
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e5e7eb;
+  margin: 1.25rem 0;
+  animation: fade-in-up 0.4s ease;
+}
+
+.no-results-icon {
+  width: 6rem;
+  height: 6rem;
+  background: #f3f4f6;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem auto;
+  color: #9ca3af;
+}
+
+.no-results-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+}
+
+.no-results-description {
+  color: #6b7280;
+  margin-bottom: 1.5rem;
+}
+
+.no-results-button {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.no-results-button:hover {
+  background: #5a67d8;
+  transform: translateY(-1px);
+}
+
+/* Animation Keyframes */
+@keyframes fade-in-up {
+  0% { 
+    opacity: 0; 
+    transform: translateY(30px); 
+  }
+  100% { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 1rem;
+  }
+  
+  .product-modules-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .product-modules-grid .account-module-card {
+    padding: 1.25rem;
+    flex-direction: column;
+    text-align: center;
+    gap: 0.75rem;
+  }
+  
+  .product-modules-grid .module-icon {
+    width: 3rem;
+    height: 3rem;
+    font-size: 1.25rem;
+    margin: 0 auto;
+  }
+  
+  .product-modules-grid .module-arrow {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-container {
+    padding: 0.75rem;
+  }
+  
+  .product-modules-grid .account-module-card {
+    padding: 1rem;
+  }
+  
+  .product-modules-grid .module-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1rem;
+  }
+  
+  .product-modules-grid .module-title {
+    font-size: 1.125rem;
+  }
+  
+  .product-modules-grid .module-description {
+    font-size: 0.8125rem;
+  }
+}

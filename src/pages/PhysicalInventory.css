@@ -1,0 +1,151 @@
+/* Physical Inventory Page Styles */
+.physical-inventory-page {
+  @apply min-h-screen bg-gray-50;
+}
+
+.physical-inventory-header {
+  @apply bg-white shadow-sm border-b border-gray-200;
+}
+
+.physical-inventory-content {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
+}
+
+.physical-inventory-stats {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8;
+}
+
+.physical-inventory-search {
+  @apply bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6;
+}
+
+.physical-inventory-filters {
+  @apply mt-4 flex flex-wrap items-center gap-4;
+}
+
+.physical-inventory-table {
+  @apply bg-white rounded-lg shadow-sm border border-gray-200;
+}
+
+.physical-inventory-pagination {
+  @apply mt-6 flex items-center justify-between;
+}
+
+/* Animation classes */
+.animate-slideInUp {
+  animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Status badges */
+.status-draft {
+  @apply bg-gray-100 text-gray-800;
+}
+
+.status-submitted {
+  @apply bg-blue-100 text-blue-800;
+}
+
+.status-approved {
+  @apply bg-green-100 text-green-800;
+}
+
+.status-rejected {
+  @apply bg-red-100 text-red-800;
+}
+
+/* Form styles */
+.physical-inventory-form {
+  @apply space-y-6;
+}
+
+.physical-inventory-form-section {
+  @apply bg-white rounded-lg shadow-sm border border-gray-200 p-6;
+}
+
+.physical-inventory-form-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+}
+
+.physical-inventory-form-actions {
+  @apply flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50;
+}
+
+/* Item list styles */
+.physical-inventory-items {
+  @apply space-y-4;
+}
+
+.physical-inventory-item {
+  @apply border border-gray-200 rounded-lg p-4;
+}
+
+.physical-inventory-item-header {
+  @apply flex items-center justify-between mb-4;
+}
+
+.physical-inventory-item-content {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4;
+}
+
+.physical-inventory-item-summary {
+  @apply mt-4 p-3 bg-gray-50 rounded-lg;
+}
+
+.physical-inventory-item-reasons {
+  @apply mt-4 grid grid-cols-1 md:grid-cols-2 gap-4;
+}
+
+/* Summary styles */
+.physical-inventory-summary {
+  @apply bg-gray-50 rounded-lg p-6;
+}
+
+.physical-inventory-summary-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4;
+}
+
+.physical-inventory-summary-item {
+  @apply text-center;
+}
+
+.physical-inventory-summary-value {
+  @apply text-2xl font-bold;
+}
+
+.physical-inventory-summary-label {
+  @apply text-sm text-gray-500;
+}
+
+.physical-inventory-net-adjustment {
+  @apply mt-4 pt-4 border-t border-gray-200;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .physical-inventory-stats {
+    @apply grid-cols-1;
+  }
+  
+  .physical-inventory-form-grid {
+    @apply grid-cols-1;
+  }
+  
+  .physical-inventory-item-content {
+    @apply grid-cols-1;
+  }
+  
+  .physical-inventory-summary-grid {
+    @apply grid-cols-1;
+  }
+}

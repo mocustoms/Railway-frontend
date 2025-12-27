@@ -1,0 +1,25 @@
+{
+  "short_name": "Tenzen",
+  "name": "Tenzen - Business Management System",
+  "icons": [
+    {
+      "src": "Tenzen_Logo.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    },
+    {
+      "src": "Tenzen Logo.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "Tenzen Logo.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#2563eb",
+  "background_color": "#ffffff"
+}

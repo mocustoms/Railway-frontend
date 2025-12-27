@@ -1,0 +1,14 @@
+.database-settings {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.database-settings .card {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.database-settings input[type="number"]::-webkit-inner-spin-button,
+.database-settings input[type="number"]::-webkit-outer-spin-button {
+  opacity: 1;
+}
+

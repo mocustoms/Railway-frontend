@@ -1,0 +1,208 @@
+/* Bank Details Page Styles */
+.bank-details-page {
+  min-height: 100vh;
+  background-color: #f9fafb;
+}
+
+/* Animation classes */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.animate-slideInUp {
+  animation: slideInUp 0.6s ease-out;
+}
+
+/* Stats cards */
+.stats-card {
+  transition: all 0.2s ease-in-out;
+}
+
+.stats-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Search section */
+.search-section {
+  transition: all 0.2s ease-in-out;
+}
+
+.search-section:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Table controls */
+.table-controls {
+  transition: all 0.2s ease-in-out;
+}
+
+.table-controls:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Table container */
+.table-container {
+  transition: all 0.2s ease-in-out;
+}
+
+.table-container:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Floating action button */
+.fab {
+  transition: all 0.2s ease-in-out;
+}
+
+.fab:hover {
+  transform: scale(1.1);
+}
+
+/* Button hover effects */
+.btn-hover {
+  transition: all 0.1s ease-in-out;
+}
+
+.btn-hover:hover {
+  transform: scale(1.05);
+}
+
+/* Loading spinner */
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Status badges */
+.status-badge {
+  font-weight: 500;
+  border-radius: 9999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+.status-badge.active {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.status-badge.inactive {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+
+/* Form modal */
+.form-modal {
+  backdrop-filter: blur(4px);
+}
+
+/* Override global table animations that cause content to disappear */
+.table-scroll-container tbody tr {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+.table-scroll-container tbody tr:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12) !important;
+  background-color: #f8fafc !important;
+}
+
+/* Ensure table content is always visible */
+.table-scroll-container {
+  overflow: visible !important;
+}
+
+.table-scroll-container table {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Custom scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .table-controls {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .export-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+}
+
+/* Focus states */
+.focus-ring:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Disabled states */
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Error states */
+.error-border {
+  border-color: #ef4444 !important;
+}
+
+/* Success states */
+.success-border {
+  border-color: #10b981 !important;
+}

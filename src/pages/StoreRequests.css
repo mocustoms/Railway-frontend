@@ -1,0 +1,160 @@
+/* Store Requests Page Styles */
+
+.stat-card-animation {
+  animation: slideInUp 0.6s ease-out forwards;
+  opacity: 1; /* Ensure cards are visible by default */
+  transform: translateY(0);
+}
+
+.stat-card-animation[data-animation-delay="0"] {
+  animation-delay: 0.1s;
+}
+
+.stat-card-animation[data-animation-delay="1"] {
+  animation-delay: 0.2s;
+}
+
+.stat-card-animation[data-animation-delay="2"] {
+  animation-delay: 0.3s;
+}
+
+.stat-card-animation[data-animation-delay="3"] {
+  animation-delay: 0.4s;
+}
+
+@keyframes slideInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slideInUp {
+  animation: slideInUp 0.5s ease-out forwards;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Status Badge Styles */
+.status-badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.status-badge-gray {
+  @apply bg-gray-100 text-gray-800;
+}
+
+.status-badge-blue {
+  @apply bg-blue-100 text-blue-800;
+}
+
+.status-badge-green {
+  @apply bg-green-100 text-green-800;
+}
+
+.status-badge-red {
+  @apply bg-red-100 text-red-800;
+}
+
+.status-badge-purple {
+  @apply bg-purple-100 text-purple-800;
+}
+
+.status-badge-orange {
+  @apply bg-orange-100 text-orange-800;
+}
+
+/* Priority Badge Styles */
+.priority-badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.priority-low {
+  @apply bg-gray-100 text-gray-800;
+}
+
+.priority-medium {
+  @apply bg-blue-100 text-blue-800;
+}
+
+.priority-high {
+  @apply bg-orange-100 text-orange-800;
+}
+
+.priority-urgent {
+  @apply bg-red-100 text-red-800;
+}
+
+/* Table Styles */
+.data-table {
+  @apply min-w-full divide-y divide-gray-200;
+}
+
+.data-table th {
+  @apply px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider;
+}
+
+.data-table td {
+  @apply px-6 py-4 whitespace-nowrap text-sm text-gray-900;
+}
+
+/* Action Buttons */
+.action-button {
+  @apply p-1 text-gray-400 hover:text-blue-600 transition-colors duration-150;
+}
+
+.action-button:hover {
+  @apply transform scale-110;
+}
+
+/* Loading States */
+.loading-skeleton {
+  @apply animate-pulse bg-gray-200 rounded;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .stat-card-animation {
+    @apply mb-4;
+  }
+  
+  .data-table {
+    @apply text-xs;
+  }
+  
+  .data-table th,
+  .data-table td {
+    @apply px-3 py-2;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .stat-card-animation {
+    @apply shadow-none border border-gray-300;
+  }
+  
+  .data-table {
+    @apply border-collapse;
+  }
+  
+  .data-table th,
+  .data-table td {
+    @apply border border-gray-300;
+  }
+}
