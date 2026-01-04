@@ -30,7 +30,7 @@ import { productColorService } from '../services/productColorService';
 import { storeRequestService } from '../services/storeRequestService';
 import { EnhancedStockBalanceChart } from '../components/charts';
 import { exportTableToExcel, exportChartToExcel, exportCompleteReportToExcel } from '../utils/excelExporter';
-// import { generateStockBalancePDF } from '../utils/pdfGenerator';
+import { generateStockBalancePDF } from '../utils/pdfGenerator';
 
 interface StockBalanceFilters {
   storeId: string;
@@ -249,7 +249,7 @@ const StockBalanceReport: React.FC = () => {
     if (format === 'pdf') {
       try {
         // Dynamic import to avoid build issues
-        const { generateStockBalancePDF } = await import('../utils/pdfGenerator');
+        // const { generateStockBalancePDF } = await import('../utils/pdfGenerator');
         
         // Pass exactly what the user sees
         const exportData = {

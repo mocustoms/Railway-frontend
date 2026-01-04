@@ -1,5 +1,9 @@
 import jsPDF from 'jspdf';
 
+import { autoTable } from 'jspdf-autotable'
+
+// applyPlugin(jsPDF)
+
 interface CompanyDetails {
   name: string;
   address: string;
@@ -25,6 +29,7 @@ interface PDFOptions {
 
 export class ProfessionalPDFGenerator {
   private doc: jsPDF;
+  private autoTable = autoTable;
   private pageWidth: number;
   private pageHeight: number;
   private margin: number;
@@ -42,25 +47,25 @@ export class ProfessionalPDFGenerator {
       // Convert relative path to full URL
       const fullUrl = imagePath.startsWith('http') ? imagePath : `${window.location.origin}${imagePath}`;
       // Loading image from URL
-      
+
       // Fetch the image
       const response = await fetch(fullUrl);
       if (!response.ok) {
         // Failed to fetch image
         return null;
       }
-      
+
       // Check if response is actually an image
       const contentType = response.headers.get('content-type');
       if (!contentType || !contentType.startsWith('image/')) {
         // Response is not an image
         return null;
       }
-      
+
       // Convert to blob
       const blob = await response.blob();
       // Image blob loaded
-      
+
       // Convert blob to data URL
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -85,13 +90,15 @@ export class ProfessionalPDFGenerator {
   private async generateHeader(options: PDFOptions): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { companyDetails, logoUrl, title, subtitle } = options;
-    
-    // Company logo (if provided)
-    // For now, always use text logo to avoid the garbled characters issue
+    console.log('logo url:', logoUrl);
+    const img = document.getElementById('company-logo') as HTMLImageElement;
+    console.log('logo img:', img);
     this.doc.setFontSize(16);
     this.doc.setTextColor(41, 128, 185);
     this.doc.setFont('helvetica', 'bold');
-    this.doc.text('📊', this.margin, 15);
+    if (img) {
+      this.doc.addImage(img, 'PNG', this.margin, 5, 10, 10);
+    }
 
     // Company name
     this.doc.setFontSize(20);
@@ -103,26 +110,40 @@ export class ProfessionalPDFGenerator {
     this.doc.setFontSize(10);
     this.doc.setFont('helvetica', 'normal');
     this.doc.setTextColor(100, 100, 100);
-    
+
     let yPosition = 30;
     if (companyDetails.address) {
-      this.doc.text(companyDetails.address, this.margin, yPosition);
+      const address = companyDetails.address.replace(/\s+/g, ' ').trim();
+      const availableWidth = this.pageWidth - this.margin * 2;
+      let displayAddress = address;
+      if (this.doc.getTextWidth(displayAddress) > availableWidth) {
+        while (displayAddress.length > 0 && this.doc.getTextWidth(displayAddress + '...') > availableWidth) {
+          displayAddress = displayAddress.slice(0, -1);
+        }
+        displayAddress = `${displayAddress}...`;
+      }
+      this.doc.text(displayAddress, this.margin, yPosition);
+      // yPosition += 10;
+      // this.doc.text(companyDetails.address, this.margin, yPosition);
       yPosition += 5;
     }
-    
+
+    this.doc.text(`${companyDetails.region}, ${companyDetails.country}`, this.margin, yPosition);
+    yPosition += 5;
+
     // Add country and region if available
-    const locationParts = [];
-    if (companyDetails.region) {
-      locationParts.push(companyDetails.region);
-    }
-    if (companyDetails.country) {
-      locationParts.push(companyDetails.country);
-    }
-    if (locationParts.length > 0) {
-      this.doc.text(locationParts.join(', '), this.margin, yPosition);
-      yPosition += 5;
-    }
-    
+    // const locationParts = [];
+    // if (companyDetails.region) {
+    //   locationParts.push(companyDetails.region);
+    // }
+    // if (companyDetails.country) {
+    //   locationParts.push(companyDetails.country);
+    // }
+    // if (locationParts.length > 0) {  
+    // this.doc.text(`${companyDetails.region}, ${companyDetails.country}`, this.margin, yPosition);
+    // yPosition += 5;
+    // }
+
     if (companyDetails.phone) {
       this.doc.text(`Tel: ${companyDetails.phone}`, this.margin, yPosition);
       yPosition += 5;
@@ -174,6 +195,7 @@ export class ProfessionalPDFGenerator {
     // Generate header first
     await this.generateHeader(options);
 
+
     // Table title
     let startY = 80;
     if (tableTitle) {
@@ -184,223 +206,241 @@ export class ProfessionalPDFGenerator {
       startY += 10;
     }
 
-    // Calculate dynamic column widths based on ALL content for accurate sizing
-    const tableWidth = this.pageWidth - (this.margin * 2);
-    
-    // Use ALL data to calculate optimal widths (not just sample)
-    const allData = data;
-    
-    // Calculate optimal column widths considering text wrapping
-    const maxWidths = headers.map((_, colIndex) => {
-      let maxWidth = 0;
-      
-      // Check header width
-      this.doc.setFontSize(8);
-      const headerWidth = this.doc.getTextWidth(headers[colIndex]);
-      maxWidth = Math.max(maxWidth, headerWidth);
-      
-      // For text columns, calculate width based on longest word, not entire text
-      this.doc.setFontSize(7);
-      allData.forEach(row => {
-        const cellText = String(row[colIndex] || '--');
-        
-        // For text columns (not numeric), find the longest word
-        if (colIndex < 9) { // Text columns (Product Code, Name, Part Number, etc.)
-          const words = cellText.split(' ');
-          words.forEach(word => {
-            const wordWidth = this.doc.getTextWidth(word);
-            maxWidth = Math.max(maxWidth, wordWidth);
-          });
-        } else {
-          // For numeric columns, use full text width
-          const cellWidth = this.doc.getTextWidth(cellText);
-          maxWidth = Math.max(maxWidth, cellWidth);
-        }
-      });
-      
-    // Set minimum widths for different column types to better utilize page width
-    let minWidth = 16;
-    
-    if (columnType === 'customer') {
-      // Customer List specific column widths
-      if (colIndex === 0) minWidth = 25; // Customer ID
-      else if (colIndex === 1) minWidth = 40; // Full Name - wider for better readability
-      else if (colIndex === 2) minWidth = 30; // Customer Group
-      else if (colIndex === 3) minWidth = 25; // Phone
-      else if (colIndex === 4) minWidth = 35; // Email
-      else if (colIndex === 5) minWidth = 30; // Website
-      else if (colIndex === 6) minWidth = 25; // Fax
-      else if (colIndex === 7) minWidth = 25; // Birthday
-      else if (colIndex === 8) minWidth = 30; // Loyalty Card
-      else if (colIndex === 9) minWidth = 25; // Loyalty Card Points
-      else if (colIndex === 10) minWidth = 50; // Address - wider for addresses
-      else if (colIndex === 11) minWidth = 25; // Account Balance
-      else minWidth = 22; // Default for other columns
-    } else if (columnType === 'birthday') {
-      // Customer Birthdays specific column widths
-      if (colIndex === 0) minWidth = 25; // Customer ID
-      else if (colIndex === 1) minWidth = 40; // Full Name - wider for better readability
-      else if (colIndex === 2) minWidth = 25; // Phone
-      else if (colIndex === 3) minWidth = 50; // Address - wider for addresses
-      else if (colIndex === 4) minWidth = 20; // Days Left
-      else if (colIndex === 5) minWidth = 25; // Birthday
-      else if (colIndex === 6) minWidth = 30; // Customer Group
-      else if (colIndex === 7) minWidth = 30; // Loyalty Card
-      else minWidth = 22; // Default for other columns
-    } else {
-      // Stock Balance specific column widths (default)
-      if (colIndex === 1) minWidth = 45; // Product Name - wider for better readability
-      else if (colIndex === 2) minWidth = 28; // Part Number - slightly wider
-      else if (colIndex >= 9) minWidth = 22; // Numeric columns - wider for better alignment
-      else minWidth = 22; // Other text columns - wider for better readability
-    }
-      
-      return Math.max(maxWidth + 8, minWidth);
-    });
-    
-    // Calculate total required width
-    const totalRequiredWidth = maxWidths.reduce((sum, width) => sum + width, 0);
-    
-    // Use more of the available width for better page utilization
-    const scaleFactor = totalRequiredWidth > tableWidth ? (tableWidth * 0.99) / totalRequiredWidth : 1;
-    const colWidths = maxWidths.map(width => Math.max(width * scaleFactor, 18)); // Slightly reduced minimum width
+    let totalValue = 0;
+    let totalQuantity = 0;
 
-    const baseRowHeight = 6;
-    let currentY = startY;
+    let footer = [{ content: totalQuantity.toString(), colSpan: 1 }, { content: totalValue.toString(), colSpan: 1 }, { content: totalValue.toString(), colSpan: 1 }];
 
-    // Draw table header
-    this.doc.setFillColor(41, 128, 185); // Blue background
-    this.doc.rect(this.margin, currentY, tableWidth, baseRowHeight, 'F');
-    
-    this.doc.setTextColor(255, 255, 255); // White text
-    this.doc.setFont('helvetica', 'bold');
-    this.doc.setFontSize(8); // Reduced font size to match data rows
-    
-    let xPos = this.margin;
-    headers.forEach((header, index) => {
-      this.doc.text(header, xPos + 1, currentY + 4);
-      xPos += colWidths[index];
-    });
+    this.autoTable(this.doc, {
+      head: [headers],
+      body: data,
+      foot: [
+       [{ content: 'Total', colSpan: columnType === 'stock' ? headers.length - 2 : columnType === 'customer' ? headers.length - 1 : 0 },...footer],
+      ],
+      startY: startY,
+    })
 
-    currentY += baseRowHeight;
 
-    // Draw table rows
-    this.doc.setTextColor(0, 0, 0); // Black text
-    this.doc.setFont('helvetica', 'normal');
-    this.doc.setFontSize(7); // Reduced font size to fit more content
+    // // this.doc.addHtml()
 
-    data.forEach((row, rowIndex) => {
-      // Calculate row height based on content wrapping
-      let maxRowHeight = baseRowHeight;
-      const wrappedTexts: string[][] = [];
-      
-      // Pre-calculate wrapped text for all cells in this row
-      row.forEach((cell, colIndex) => {
-        const colWidth = colWidths[colIndex];
-        const cellText = String(cell || '--');
-        
-      // Wrap text to fit column width with reduced padding for better space utilization
-      const wrappedLines = this.wrapText(cellText, colWidth - 2); // Reduced padding from 3 to 2
-        wrappedTexts.push(wrappedLines);
-        
-        // Calculate row height based on number of lines
-        const lineHeight = 4;
-        const cellHeight = wrappedLines.length * lineHeight;
-        maxRowHeight = Math.max(maxRowHeight, cellHeight);
-      });
+    // // Calculate dynamic column widths based on ALL content for accurate sizing
+    // const tableWidth = this.pageWidth - (this.margin * 2);
 
-      // Check if we need a new page (adjusted for landscape)
-      if (currentY + maxRowHeight > this.pageHeight - 40) {
-        this.doc.addPage();
-        currentY = 20;
-      }
+    // // Use ALL data to calculate optimal widths (not just sample)
+    // const allData = data;
 
-      // Alternate row colors
-      if (rowIndex % 2 === 0) {
-        this.doc.setFillColor(245, 245, 245); // Light gray
-        this.doc.rect(this.margin, currentY, tableWidth, maxRowHeight, 'F');
-      }
+    // // Calculate optimal column widths considering text wrapping
+    // const maxWidths = headers.map((_, colIndex) => {
+    //   let maxWidth = 0;
 
-      // Draw cell borders and content with wrapping
-      xPos = this.margin;
-      wrappedTexts.forEach((wrappedLines, colIndex) => {
-        // Draw cell border
-        this.doc.setDrawColor(200, 200, 200);
-        this.doc.rect(xPos, currentY, colWidths[colIndex], maxRowHeight);
-        
-        // Draw each line of wrapped text
-        wrappedLines.forEach((line, lineIndex) => {
-          const textY = currentY + (lineIndex * 4) + 3;
-          
-          // Right align numeric columns with optimized positioning
-          if (colIndex >= 9) { // Quantity, Unit Cost, Total Value
-            this.doc.text(line, xPos + colWidths[colIndex] - 1, textY, { align: 'right' });
-          } else {
-            this.doc.text(line, xPos + 1, textY);
-          }
-        });
-        
-        xPos += colWidths[colIndex];
-      });
+    //   // Check header width
+    //   this.doc.setFontSize(8);
+    //   const headerWidth = this.doc.getTextWidth(headers[colIndex]);
+    //   maxWidth = Math.max(maxWidth, headerWidth);
 
-      currentY += maxRowHeight;
-    });
+    //   // For text columns, calculate width based on longest word, not entire text
+    //   this.doc.setFontSize(7);
+    //   allData.forEach(row => {
+    //     const cellText = String(row[colIndex] || '--');
 
-    // Draw table borders
-    this.doc.setDrawColor(200, 200, 200);
-    this.doc.setLineWidth(0.1);
-    
-    // Vertical lines
-    xPos = this.margin;
-    for (let i = 0; i <= colWidths.length; i++) {
-      this.doc.line(xPos, startY, xPos, currentY);
-      if (i < colWidths.length) {
-        xPos += colWidths[i];
-      }
-    }
-    
-    // Horizontal lines - draw at header and after each row
-    this.doc.line(this.margin, startY, this.margin + tableWidth, startY); // Header top
-    this.doc.line(this.margin, startY + baseRowHeight, this.margin + tableWidth, startY + baseRowHeight); // Header bottom
-    
-    // Draw horizontal lines for each data row
-    let lineY = startY + baseRowHeight;
-    data.forEach((row, rowIndex) => {
-      // Calculate row height for this specific row
-      let maxRowHeight = baseRowHeight;
-      row.forEach((cell, colIndex) => {
-        const colWidth = colWidths[colIndex];
-        const cellText = String(cell || '--');
-        const wrappedLines = this.wrapText(cellText, colWidth - 2);
-        const cellHeight = wrappedLines.length * 4;
-        maxRowHeight = Math.max(maxRowHeight, cellHeight);
-      });
-      
-      lineY += maxRowHeight;
-      this.doc.line(this.margin, lineY, this.margin + tableWidth, lineY);
-    });
+    //     // For text columns (not numeric), find the longest word
+    //     if (colIndex < 9) { // Text columns (Product Code, Name, Part Number, etc.)
+    //       const words = cellText.split(' ');
+    //       words.forEach(word => {
+    //         const wordWidth = this.doc.getTextWidth(word);
+    //         maxWidth = Math.max(maxWidth, wordWidth);
+    //       });
+    //     } else {
+    //       // For numeric columns, use full text width
+    //       const cellWidth = this.doc.getTextWidth(cellText);
+    //       maxWidth = Math.max(maxWidth, cellWidth);
+    //     }
+    //   });
 
-    // Add totals row
-    currentY = this.addTotalsRow(data, colWidths, currentY, options, columnType);
+    //   // Set minimum widths for different column types to better utilize page width
+    //   let minWidth = 16;
 
-    // Store final Y position for summary
-    (this.doc as any).lastTableY = currentY;
+    //   if (columnType === 'customer') {
+    //     // Customer List specific column widths
+    //     if (colIndex === 0) minWidth = 25; // Customer ID
+    //     else if (colIndex === 1) minWidth = 40; // Full Name - wider for better readability
+    //     else if (colIndex === 2) minWidth = 30; // Customer Group
+    //     else if (colIndex === 3) minWidth = 25; // Phone
+    //     else if (colIndex === 4) minWidth = 35; // Email
+    //     else if (colIndex === 5) minWidth = 30; // Website
+    //     else if (colIndex === 6) minWidth = 25; // Fax
+    //     else if (colIndex === 7) minWidth = 25; // Birthday
+    //     else if (colIndex === 8) minWidth = 30; // Loyalty Card
+    //     else if (colIndex === 9) minWidth = 25; // Loyalty Card Points
+    //     else if (colIndex === 10) minWidth = 50; // Address - wider for addresses
+    //     else if (colIndex === 11) minWidth = 25; // Account Balance
+    //     else minWidth = 22; // Default for other columns
+    //   } else if (columnType === 'birthday') {
+    //     // Customer Birthdays specific column widths
+    //     if (colIndex === 0) minWidth = 25; // Customer ID
+    //     else if (colIndex === 1) minWidth = 40; // Full Name - wider for better readability
+    //     else if (colIndex === 2) minWidth = 25; // Phone
+    //     else if (colIndex === 3) minWidth = 50; // Address - wider for addresses
+    //     else if (colIndex === 4) minWidth = 20; // Days Left
+    //     else if (colIndex === 5) minWidth = 25; // Birthday
+    //     else if (colIndex === 6) minWidth = 30; // Customer Group
+    //     else if (colIndex === 7) minWidth = 30; // Loyalty Card
+    //     else minWidth = 22; // Default for other columns
+    //   } else {
+    //     // Stock Balance specific column widths (default)
+    //     if (colIndex === 1) minWidth = 45; // Product Name - wider for better readability
+    //     else if (colIndex === 2) minWidth = 28; // Part Number - slightly wider
+    //     else if (colIndex >= 9) minWidth = 22; // Numeric columns - wider for better alignment
+    //     else minWidth = 22; // Other text columns - wider for better readability
+    //   }
+
+    //   return Math.max(maxWidth + 8, minWidth);
+    // });
+
+    // // Calculate total required width
+    // const totalRequiredWidth = maxWidths.reduce((sum, width) => sum + width, 0);
+
+    // // Use more of the available width for better page utilization
+    // const scaleFactor = totalRequiredWidth > tableWidth ? (tableWidth * 0.99) / totalRequiredWidth : 1;
+    // const colWidths = maxWidths.map(width => Math.max(width * scaleFactor, 18)); // Slightly reduced minimum width
+
+    // const baseRowHeight = 6;
+    // let currentY = startY;
+
+    // // Draw table header
+    // this.doc.setFillColor(41, 128, 185); // Blue background
+    // this.doc.rect(this.margin, currentY, tableWidth, baseRowHeight, 'F');
+
+    // this.doc.setTextColor(255, 255, 255); // White text
+    // this.doc.setFont('helvetica', 'bold');
+    // this.doc.setFontSize(8); // Reduced font size to match data rows
+
+    // let xPos = this.margin;
+    // headers.forEach((header, index) => {
+    //   this.doc.text(header, xPos + 1, currentY + 4);
+    //   xPos += colWidths[index];
+    // });
+
+    // currentY += baseRowHeight;
+
+    // // Draw table rows
+    // this.doc.setTextColor(0, 0, 0); // Black text
+    // this.doc.setFont('helvetica', 'normal');
+    // this.doc.setFontSize(7); // Reduced font size to fit more content
+
+    // data.forEach((row, rowIndex) => {
+    //   // Calculate row height based on content wrapping
+    //   let maxRowHeight = baseRowHeight;
+    //   const wrappedTexts: string[][] = [];
+
+    //   // Pre-calculate wrapped text for all cells in this row
+    //   row.forEach((cell, colIndex) => {
+    //     const colWidth = colWidths[colIndex];
+    //     const cellText = String(cell || '--');
+
+    //     // Wrap text to fit column width with reduced padding for better space utilization
+    //     const wrappedLines = this.wrapText(cellText, colWidth - 2); // Reduced padding from 3 to 2
+    //     wrappedTexts.push(wrappedLines);
+
+    //     // Calculate row height based on number of lines
+    //     const lineHeight = 4;
+    //     const cellHeight = wrappedLines.length * lineHeight;
+    //     maxRowHeight = Math.max(maxRowHeight, cellHeight);
+    //   });
+
+    //   // Check if we need a new page (adjusted for landscape)
+    //   if (currentY + maxRowHeight > this.pageHeight - 40) {
+    //     this.doc.addPage();
+    //     currentY = 20;
+    //   }
+
+    //   // Alternate row colors
+    //   if (rowIndex % 2 === 0) {
+    //     this.doc.setFillColor(245, 245, 245); // Light gray
+    //     this.doc.rect(this.margin, currentY, tableWidth, maxRowHeight, 'F');
+    //   }
+
+    //   // Draw cell borders and content with wrapping
+    //   xPos = this.margin;
+    //   wrappedTexts.forEach((wrappedLines, colIndex) => {
+    //     // Draw cell border
+    //     this.doc.setDrawColor(200, 200, 200);
+    //     this.doc.rect(xPos, currentY, colWidths[colIndex], maxRowHeight);
+
+    //     // Draw each line of wrapped text
+    //     wrappedLines.forEach((line, lineIndex) => {
+    //       const textY = currentY + (lineIndex * 4) + 3;
+
+    //       // Right align numeric columns with optimized positioning
+    //       if (colIndex >= 9) { // Quantity, Unit Cost, Total Value
+    //         this.doc.text(line, xPos + colWidths[colIndex] - 1, textY, { align: 'right' });
+    //       } else {
+    //         this.doc.text(line, xPos + 1, textY);
+    //       }
+    //     });
+
+    //     xPos += colWidths[colIndex];
+    //   });
+
+    //   currentY += maxRowHeight;
+    // });
+
+    // // Draw table borders
+    // this.doc.setDrawColor(200, 200, 200);
+    // this.doc.setLineWidth(0.1);
+
+    // // Vertical lines
+    // xPos = this.margin;
+    // for (let i = 0; i <= colWidths.length; i++) {
+    //   this.doc.line(xPos, startY, xPos, currentY);
+    //   if (i < colWidths.length) {
+    //     xPos += colWidths[i];
+    //   }
+    // }
+
+    // // Horizontal lines - draw at header and after each row
+    // this.doc.line(this.margin, startY, this.margin + tableWidth, startY); // Header top
+    // this.doc.line(this.margin, startY + baseRowHeight, this.margin + tableWidth, startY + baseRowHeight); // Header bottom
+
+    // // Draw horizontal lines for each data row
+    // let lineY = startY + baseRowHeight;
+    // data.forEach((row, rowIndex) => {
+    //   // Calculate row height for this specific row
+    //   let maxRowHeight = baseRowHeight;
+    //   row.forEach((cell, colIndex) => {
+    //     const colWidth = colWidths[colIndex];
+    //     const cellText = String(cell || '--');
+    //     const wrappedLines = this.wrapText(cellText, colWidth - 2);
+    //     const cellHeight = wrappedLines.length * 4;
+    //     maxRowHeight = Math.max(maxRowHeight, cellHeight);
+    //   });
+
+    //   lineY += maxRowHeight;
+    //   this.doc.line(this.margin, lineY, this.margin + tableWidth, lineY);
+    // });
+
+    // // Add totals row
+    // currentY = this.addTotalsRow(data, colWidths, currentY, options, columnType, headers);
+
+    // // Store final Y position for summary
+    // (this.doc as any).lastTableY = currentY;
   }
 
   // Add totals row to the table
-  private addTotalsRow(data: any[][], colWidths: number[], currentY: number, options: PDFOptions, columnType?: 'stock' | 'customer' | 'birthday'): number {
+  private addTotalsRow(data: any[][], colWidths: number[], currentY: number, options: PDFOptions, columnType?: 'stock' | 'customer' | 'birthday', headers?: any[]): number {
     // Calculate totals based on column type
     let totalQuantity = 0;
     let totalValue = 0;
-    
+
     if (columnType === 'stock') {
       // Stock Balance totals
       totalQuantity = data.reduce((sum, row) => {
-        const quantityStr = row[9]; // Quantity column index
+        const index = headers?.indexOf('quantity') || 9;
+        const quantityStr = row[index]; // Quantity column index
         const quantity = parseFloat((quantityStr || '0').toString().replace(/,/g, '')) || 0;
         return sum + quantity;
       }, 0);
-      
+
       totalValue = data.reduce((sum, row) => {
         const valueStr = row[11]; // Total Value column index
         const value = parseFloat((valueStr || '0').toString().replace(/,/g, '')) || 0;
@@ -419,7 +459,7 @@ export class ProfessionalPDFGenerator {
     // Create totals row data based on column type
     const totalsRow = colWidths.map((_, colIndex) => {
       if (colIndex === 0) return 'Total';
-      
+
       if (columnType === 'stock') {
         if (colIndex === 9) return totalQuantity.toLocaleString(); // Quantity
         else if (colIndex === 11) return totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); // Total Value
@@ -442,13 +482,13 @@ export class ProfessionalPDFGenerator {
     this.doc.setFontSize(8);
     this.doc.setFont('helvetica', 'bold');
     this.doc.setTextColor(0, 0, 0);
-    
+
     let xPos = this.margin;
     totalsRow.forEach((cell, colIndex) => {
       // Draw cell border
       this.doc.setDrawColor(200, 200, 200);
       this.doc.rect(xPos, currentY, colWidths[colIndex], totalsRowHeight);
-      
+
       // Draw cell content
       if (cell) {
         if (colIndex >= 9) { // Numeric columns - right align
@@ -457,14 +497,14 @@ export class ProfessionalPDFGenerator {
           this.doc.text(cell, xPos + 1, currentY + 4);
         }
       }
-      
+
       xPos += colWidths[colIndex];
     });
 
     // Draw bottom border for totals row
     this.doc.setDrawColor(200, 200, 200);
     this.doc.line(this.margin, currentY + totalsRowHeight, this.margin + colWidths.reduce((sum, width) => sum + width, 0), currentY + totalsRowHeight);
-    
+
     // Return new Y position
     return currentY + totalsRowHeight;
   }
@@ -474,11 +514,11 @@ export class ProfessionalPDFGenerator {
     const words = text.split(' ');
     const lines: string[] = [];
     let currentLine = '';
-    
+
     for (const word of words) {
       const testLine = currentLine + (currentLine ? ' ' : '') + word;
       const testWidth = this.doc.getTextWidth(testLine);
-      
+
       if (testWidth <= maxWidth) {
         currentLine = testLine;
       } else {
@@ -505,11 +545,11 @@ export class ProfessionalPDFGenerator {
         }
       }
     }
-    
+
     if (currentLine) {
       lines.push(currentLine);
     }
-    
+
     return lines.length > 0 ? lines : ['--'];
   }
 
@@ -546,7 +586,7 @@ export const generateStockBalancePDF = async (
   }
 ): Promise<Blob> => {
   const generator = new ProfessionalPDFGenerator();
-  
+
   // Fetch company details from API
   let companyDetails: CompanyDetails = {
     name: 'EasyMauzo Company',
@@ -560,7 +600,7 @@ export const generateStockBalancePDF = async (
     // Use the configured API service for proper authentication
     const api = (await import('../services/api')).default;
     const response = await api.get('/company');
-    
+
     if (response.data.success && response.data.data) {
       const company = response.data.data;
       companyDetails = {
@@ -584,7 +624,7 @@ export const generateStockBalancePDF = async (
   // PDF options
   const options: PDFOptions = {
     title: exportData.reportType === 'current' ? 'Stock Balance Report' : 'Stock Balance as of Date Report',
-    subtitle: exportData.reportType === 'historical' && exportData.filters.asOfDate 
+    subtitle: exportData.reportType === 'historical' && exportData.filters.asOfDate
       ? `As of ${new Date(exportData.filters.asOfDate).toLocaleDateString()}`
       : 'Current Stock Levels',
     companyDetails,
@@ -597,41 +637,27 @@ export const generateStockBalancePDF = async (
   };
 
   // Prepare table data - show ALL available columns for complete report
-  const allHeaders = [
-    'Product Code',
-    'Product Name',
-    'Part Number',
-    'Category',
-    'Brand',
-    'Manufacturer',
-    'Model',
-    'Color',
-    'Location',
-    'Quantity',
-    'Unit Cost',
-    'Total Value'
-  ];
 
-  const allDataKeys = [
-    'productCode',
-    'productName',
-    'partNumber',
-    'category',
-    'brandName',
-    'manufacturerName',
-    'modelName',
-    'colorName',
-    'storeLocation',
-    'quantity',
-    'unitCost',
-    'totalValue'
+  const allHeaders = [
+    { label: 'Product Code', key: 'productCode' },
+    { label: 'Product Name', key: 'productName' },
+    { label: 'Part Number', key: 'partNumber' },
+    { label: 'Brand', key: 'brandName' }, { label: 'Category', key: 'category' },
+    { label: 'Manufacturer', key: 'manufacturerName' },
+    { label: 'Model', key: 'modelName' },
+    { label: 'Color', key: 'colorName' },
+    { label: 'Location', key: 'storeLocation' },
+    { label: 'Unit Cost', key: 'unitCost' },
+    { label: 'Quantity', key: 'quantity' },
+    { label: 'Total Value', key: 'totalValue' },
   ];
 
   // Use all columns for complete report
-  const visibleHeaders = allHeaders;
-  const visibleDataKeys = allDataKeys;
+  const visibleHeaders = allHeaders.filter(header => exportData.visibleColumns ? exportData.visibleColumns[header.key] : true);
+  const visibleDataKeys = visibleHeaders.map(header => header.key);
+  const visibleDataLabels = visibleHeaders.map(header => header.label);
 
-  const tableData = exportData.data.map(item => 
+  const tableData = exportData.data.map(item =>
     visibleDataKeys.map(key => {
       const value = item[key];
       if (key === 'quantity') {
@@ -646,7 +672,7 @@ export const generateStockBalancePDF = async (
   );
 
   // Generate table
-  await generator.generateTable(visibleHeaders, tableData, options, 'Stock Balance Details', 'stock');
+  await generator.generateTable(visibleDataLabels, tableData, options, 'Stock Balance Details', 'stock');
 
   // Calculate totals for table footer (already handled in generateTable)
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -671,7 +697,7 @@ export const generateCustomerListPDF = async (
   }
 ): Promise<Blob> => {
   const generator = new ProfessionalPDFGenerator();
-  
+
   // Fetch company details from API
   let companyDetails: CompanyDetails = {
     name: 'EasyMauzo Company',
@@ -685,7 +711,7 @@ export const generateCustomerListPDF = async (
     // Use the configured API service for proper authentication
     const api = (await import('../services/api')).default;
     const response = await api.get('/company');
-    
+
     if (response.data.success && response.data.data) {
       const company = response.data.data;
       companyDetails = {
@@ -758,7 +784,7 @@ export const generateCustomerListPDF = async (
     return generator.getBlob();
   }
 
-  const tableData = exportData.data.map(item => 
+  const tableData = exportData.data.map(item =>
     visibleDataKeys.map(key => {
       const value = item[key];
       if (key === 'accountBalance') {
@@ -790,7 +816,7 @@ export const generateCustomerBirthdaysPDF = async (
   }
 ): Promise<Blob> => {
   const generator = new ProfessionalPDFGenerator();
-  
+
   // Fetch company details from API
   let companyDetails: CompanyDetails = {
     name: 'EasyMauzo Company',
@@ -804,7 +830,7 @@ export const generateCustomerBirthdaysPDF = async (
     // Use the configured API service for proper authentication
     const api = (await import('../services/api')).default;
     const response = await api.get('/company');
-    
+
     if (response.data.success && response.data.data) {
       const company = response.data.data;
       companyDetails = {
@@ -869,7 +895,7 @@ export const generateCustomerBirthdaysPDF = async (
     return generator.getBlob();
   }
 
-  const tableData = exportData.data.map(item => 
+  const tableData = exportData.data.map(item =>
     visibleDataKeys.map(key => {
       const value = item[key];
       if (key === 'daysLeft') {
@@ -895,7 +921,7 @@ export const generateRevenuePDF = async (
   totals?: any
 ): Promise<Blob> => {
   const generator = new ProfessionalPDFGenerator();
-  
+
   // Fetch company details from API
   let companyDetails: CompanyDetails = {
     name: 'EasyMauzo Company',
@@ -908,7 +934,7 @@ export const generateRevenuePDF = async (
   try {
     const api = (await import('../services/api')).default;
     const response = await api.get('/company');
-    
+
     if (response.data.success && response.data.data) {
       const company = response.data.data;
       companyDetails = {
@@ -929,7 +955,7 @@ export const generateRevenuePDF = async (
   // PDF options
   const options: PDFOptions = {
     title: title || 'Revenue Report',
-    subtitle: filters.dateFrom && filters.dateTo 
+    subtitle: filters.dateFrom && filters.dateTo
       ? `From ${filters.dateFrom} to ${filters.dateTo}`
       : undefined,
     companyDetails,
@@ -980,7 +1006,7 @@ export const generateRevenuePDF = async (
     return generator.getBlob();
   }
 
-  const tableData = data.map(item => 
+  const tableData = data.map(item =>
     allDataKeys.map(key => {
       const value = item[key];
       if (key === 'transactionDate') {
@@ -1025,7 +1051,7 @@ export const generateTrialBalancePDF = async (
   metadata: any
 ): Promise<Blob> => {
   const generator = new ProfessionalPDFGenerator();
-  
+
   // Fetch company details from API
   let companyDetails: CompanyDetails = {
     name: 'EasyMauzo Company',
@@ -1038,7 +1064,7 @@ export const generateTrialBalancePDF = async (
   try {
     const api = (await import('../services/api')).default;
     const response = await api.get('/company');
-    
+
     if (response.data.success && response.data.data) {
       const company = response.data.data;
       companyDetails = {
@@ -1057,7 +1083,7 @@ export const generateTrialBalancePDF = async (
   }
 
   // PDF options
-  const subtitle = metadata?.financialYear 
+  const subtitle = metadata?.financialYear
     ? `${metadata.financialYear.name}${filters.startDate && filters.endDate ? ` (${filters.startDate} to ${filters.endDate})` : ''}`
     : undefined;
 
@@ -1098,7 +1124,7 @@ export const generateTrialBalancePDF = async (
   }
 
   const allFlattened = flattenAccounts(data);
-  
+
   const allHeaders = [
     'Account Code',
     'Account Name',
@@ -1124,7 +1150,7 @@ export const generateTrialBalancePDF = async (
       summary.totalDebit?.toFixed(2) || '0.00',
       summary.totalCredit?.toFixed(2) || '0.00'
     ]);
-    
+
     if (!summary.isBalanced) {
       tableData.push([
         'DIFFERENCE',

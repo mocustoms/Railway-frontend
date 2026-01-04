@@ -341,13 +341,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, isMobileOpen =
               <div className="flex items-center space-x-3 flex-1 min-w-0">
                 {companyData?.logo && !logoError ? (
                   <img
+                    id='company-logo'
                     src={`${process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:3000'}${companyData.logo}`}
                     alt={`${companyName} Logo`}
                     className="w-14 h-14 rounded-lg object-cover border border-gray-200 shadow-sm flex-shrink-0"
                     onError={() => setLogoError(true)}
                   />
                 ) : (
-                  <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-sm flex-shrink-0">
+                  <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-sm flex-shrink-0" id="alt-logo">
                     <span className="text-white font-bold text-lg">
                       {companyName.charAt(0).toUpperCase()}
                     </span>
