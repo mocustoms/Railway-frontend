@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, X, Plus, FileText, FileSpreadsheet, ArrowLeft, Eye, Edit, Trash2, RotateCcw, CheckCircle, XCircle } from 'lucide-react';
 import useReturnsOutManagement from '../hooks/useReturnsOutManagement';
-import { ReturnsOut } from '../services/returnsOutService';
+import { ReturnsOut as ReturnsOutType } from '../services/returnsOutService';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import DataTable from '../components/DataTable';
@@ -43,7 +43,7 @@ const ReturnsOut: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedReturnsOut, setSelectedReturnsOut] = useState<ReturnsOut | null>(null);
+  const [selectedReturnsOut, setSelectedReturnsOut] = useState<ReturnsOutType | null>(null);
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
 
   const showingStart = useMemo(() => {
@@ -62,18 +62,18 @@ const ReturnsOut: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleEdit = (returnsOut: ReturnsOut) => {
+  const handleEdit = (returnsOut: ReturnsOutType) => {
     setModalMode('edit');
     setSelectedReturnsOut(returnsOut);
     setIsModalOpen(true);
   };
 
-  const handleView = (returnsOut: ReturnsOut) => {
+  const handleView = (returnsOut: ReturnsOutType) => {
     setSelectedReturnsOut(returnsOut);
     setIsViewModalOpen(true);
   };
 
-  const handleDelete = (returnsOut: ReturnsOut) => {
+  const handleDelete = (returnsOut: ReturnsOutType) => {
     setSelectedReturnsOut(returnsOut);
     setIsDeleteModalOpen(true);
   };
@@ -105,15 +105,15 @@ const ReturnsOut: React.FC = () => {
     handleModalClose();
   };
 
-  const handleApprove = async (returnsOut: ReturnsOut) => {
+  const handleApprove = async (returnsOut: ReturnsOutType) => {
     await approveReturnsOut(returnsOut.id);
   };
 
-  const handleComplete = async (returnsOut: ReturnsOut) => {
+  const handleComplete = async (returnsOut: ReturnsOutType) => {
     await completeReturnsOut(returnsOut.id);
   };
 
-  const handleCancel = async (returnsOut: ReturnsOut) => {
+  const handleCancel = async (returnsOut: ReturnsOutType) => {
     await cancelReturnsOut(returnsOut.id);
   };
 
@@ -122,7 +122,7 @@ const ReturnsOut: React.FC = () => {
       key: 'return_ref_number',
       header: 'Return Ref',
       sortable: true,
-      render: (row: ReturnsOut) => (
+      render: (row: ReturnsOutType) => (
         <span className="font-mono text-sm bg-gray-50 px-2 py-1 rounded">
           {row.return_ref_number}
         </span>
@@ -133,7 +133,7 @@ const ReturnsOut: React.FC = () => {
       key: 'return_date',
       header: 'Return Date',
       sortable: true,
-      render: (row: ReturnsOut) => (
+      render: (row: ReturnsOutType) => (
         <span className="text-gray-700">{formatDate(row.return_date)}</span>
       ),
       defaultVisible: true
@@ -142,7 +142,7 @@ const ReturnsOut: React.FC = () => {
       key: 'vendor_name',
       header: 'Vendor',
       sortable: true,
-      render: (row: ReturnsOut) => (
+      render: (row: ReturnsOutType) => (
         <div>
           <div className="font-medium text-gray-900">{row.vendor_name || 'N/A'}</div>
           <div className="text-sm text-gray-500">{row.vendor_code || ''}</div>
@@ -154,7 +154,7 @@ const ReturnsOut: React.FC = () => {
       key: 'store_name',
       header: 'Store',
       sortable: true,
-      render: (row: ReturnsOut) => (
+      render: (row: ReturnsOutType) => (
         <span className="text-gray-700">{row.store_name || 'N/A'}</span>
       ),
       defaultVisible: true
@@ -163,7 +163,7 @@ const ReturnsOut: React.FC = () => {
       key: 'return_reason_name',
       header: 'Reason',
       sortable: false,
-      render: (row: ReturnsOut) => (
+      render: (row: ReturnsOutType) => (
         <span className="text-gray-700">{row.return_reason_name || 'N/A'}</span>
       ),
       defaultVisible: true
@@ -172,7 +172,7 @@ const ReturnsOut: React.FC = () => {
       key: 'total_amount',
       header: 'Total Amount',
       sortable: true,
-      render: (row: ReturnsOut) => (
+      render: (row: ReturnsOutType) => (
         <span className="text-gray-900 font-medium">
           {parseFloat(row.total_amount.toString()).toFixed(2)}
         </span>
@@ -183,7 +183,7 @@ const ReturnsOut: React.FC = () => {
       key: 'refund_amount',
       header: 'Refund Amount',
       sortable: true,
-      render: (row: ReturnsOut) => (
+      render: (row: ReturnsOutType) => (
         <span className="text-green-600 font-medium">
           {parseFloat(row.refund_amount.toString()).toFixed(2)}
         </span>
@@ -194,7 +194,7 @@ const ReturnsOut: React.FC = () => {
       key: 'status',
       header: 'Status',
       sortable: true,
-      render: (row: ReturnsOut) => (
+      render: (row: ReturnsOutType) => (
         <StatusBadge status={row.status} />
       ),
       defaultVisible: true
@@ -203,7 +203,7 @@ const ReturnsOut: React.FC = () => {
       key: 'refund_status',
       header: 'Refund Status',
       sortable: true,
-      render: (row: ReturnsOut) => (
+      render: (row: ReturnsOutType) => (
         <StatusBadge status={row.refund_status} />
       ),
       defaultVisible: true
@@ -212,7 +212,7 @@ const ReturnsOut: React.FC = () => {
       key: 'created_by_name',
       header: 'Created By',
       sortable: true,
-      render: (row: ReturnsOut) => (
+      render: (row: ReturnsOutType) => (
         <div className="text-sm text-gray-600">
           <div className="font-medium">{row.created_by_name || 'System'}</div>
           <div className="text-xs text-gray-500">{formatDate(row.created_at)}</div>
@@ -223,7 +223,7 @@ const ReturnsOut: React.FC = () => {
     {
       key: 'actions',
       header: 'Actions',
-      render: (row: ReturnsOut) => (
+      render: (row: ReturnsOutType) => (
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
@@ -384,7 +384,19 @@ const ReturnsOut: React.FC = () => {
             </div>
             <div className="flex items-center space-x-3">
               <button
-                onClick={exportExcel}
+                onClick={async () => {
+                  try {
+                    const blob = await exportExcel();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'returns-out.xlsx';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  } catch (error) {
+                    console.error('Export failed:', error);
+                  }
+                }}
                 disabled={isLoading}
                 className="inline-flex items-center px-4 py-2 border border-green-300 text-sm font-medium rounded-lg text-green-700 bg-white hover:bg-green-50 disabled:opacity-50"
               >
@@ -392,7 +404,19 @@ const ReturnsOut: React.FC = () => {
                 Export Excel
               </button>
               <button
-                onClick={exportPdf}
+                onClick={async () => {
+                  try {
+                    const blob = await exportPdf();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'returns-out.pdf';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  } catch (error) {
+                    console.error('Export failed:', error);
+                  }
+                }}
                 disabled={isLoading}
                 className="inline-flex items-center px-4 py-2 border border-red-300 text-sm font-medium rounded-lg text-red-700 bg-white hover:bg-red-50 disabled:opacity-50"
               >

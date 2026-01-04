@@ -11,7 +11,7 @@ import { ReturnsOutFormData, ReturnsOutItemFormData } from '../services/returnsO
 import { productCatalogService } from '../services/productCatalogService';
 import vendorService from '../services/vendorService';
 import storeService from '../services/storeService';
-import returnReasonService from '../services/returnReasonService';
+import { returnReasonService } from '../services/returnReasonService';
 
 interface ReturnsOutFormProps {
   returnsOut?: any;
@@ -45,7 +45,7 @@ const schema = yup.object({
 
 const ReturnsOutForm: React.FC<ReturnsOutFormProps> = ({ returnsOut, onSubmit, onCancel, isLoading }) => {
   const { control, handleSubmit, watch, setValue, formState: { errors } } = useForm<ReturnsOutFormData>({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(schema) as any,
     defaultValues: {
       return_date: returnsOut?.return_date || new Date().toISOString().split('T')[0],
       store_id: returnsOut?.store_id || '',
@@ -105,7 +105,7 @@ const ReturnsOutForm: React.FC<ReturnsOutFormProps> = ({ returnsOut, onSubmit, o
     }
     try {
       const response = await productCatalogService.getProducts(1, 50, { search: term, status: 'active' });
-      setProductOptions(prev => ({ ...prev, [index]: response.data || [] }));
+      setProductOptions(prev => ({ ...prev, [index]: response.products || [] }));
     } catch (error) {
       setProductOptions(prev => ({ ...prev, [index]: [] }));
     }
@@ -134,16 +134,16 @@ const ReturnsOutForm: React.FC<ReturnsOutFormProps> = ({ returnsOut, onSubmit, o
   const handleFormSubmit = async (data: ReturnsOutFormData) => {
     const transformedData: ReturnsOutFormData = {
       ...data,
-      items: data.items.map(item => ({
+      items: data.items.map((item, index) => ({
         ...item,
-        refund_amount: item.refund_amount || calculateItemTotal(data.items.indexOf(item))
+        refund_amount: item.refund_amount || calculateItemTotal(index)
       }))
     };
     await onSubmit(transformedData);
   };
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(handleFormSubmit as any)} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Controller
           name="return_date"
@@ -213,7 +213,7 @@ const ReturnsOutForm: React.FC<ReturnsOutFormProps> = ({ returnsOut, onSubmit, o
                 disabled={isLoading}
               >
                 <option value="">Select Reason</option>
-                {returnReasons?.map(reason => (
+                {returnReasons?.map((reason: any) => (
                   <option key={reason.id} value={reason.id}>{reason.name}</option>
                 ))}
               </select>
