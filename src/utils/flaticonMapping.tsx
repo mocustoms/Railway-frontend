@@ -18,8 +18,11 @@ export const flaticonMap: Record<string, string> = {
   'Package': 'fi-rr-box',
   'Warehouse': 'fi-rr-warehouse-alt', // Warehouse icon
   'ShoppingCart': 'fi-rr-shopping-cart',
+  'ShoppingBag': 'fi-rr-shopping-bag', // For purchases
   'Inventory': 'fi-rr-inventory-alt', // For inventory management
   'Stock': 'fi-rr-chart-histogram', // For stock reports
+  'Truck': 'fi-rr-truck', // For purchasing orders
+  'RotateCcw': 'fi-rr-rotate-right', // For returns
   
   // Users & Settings
   'Users': 'fi-rr-users',

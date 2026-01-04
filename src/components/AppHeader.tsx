@@ -56,6 +56,16 @@ const routeLabels: Record<string, string> = {
   '/sales/daily': 'Daily Sales',
   '/sales/invoices': 'Invoices',
   
+  // Purchases Sub-modules
+  '/purchases': 'Purchases',
+  '/purchases/vendor-groups': 'Vendor Groups',
+  '/purchases/vendors': 'Vendors',
+  '/purchases/purchasing-order': 'Purchasing Order',
+  '/purchases/invoice': 'Purchase Invoice',
+  '/purchases/invoice-payments': 'Invoice Payments',
+  '/purchases/returns-out-reasons': 'Returns Out Reasons',
+  '/purchases/returns-out': 'Returns Out',
+  
   // Accounts Sub-modules
   '/accounts/account-types': 'Account Types',
   '/accounts/chart-of-accounts': 'Chart of Accounts',

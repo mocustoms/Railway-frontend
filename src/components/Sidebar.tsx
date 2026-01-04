@@ -105,6 +105,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, isMobileOpen =
           description: 'Sales management system'
         },
         {
+          path: '/purchases',
+          title: 'Purchases',
+          icon: getFlaticonIcon('ShoppingBag'),
+          description: 'Purchases management system'
+        },
+        {
           path: '/inventory-management',
           title: 'Inventory',
           icon: getFlaticonIcon('Inventory'),
@@ -191,6 +197,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, isMobileOpen =
              location.pathname === '/sales/proforma-invoices' ||
              location.pathname === '/sales/sales-orders' ||
              location.pathname === '/sales/sales-invoices';
+    }
+    
+    // Handle Purchases module and its sub-modules
+    if (path === '/purchases') {
+      return location.pathname === path || 
+             location.pathname.startsWith(path + '/');
     }
     
     // Handle Products module and its sub-modules
@@ -299,6 +311,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, isMobileOpen =
     // If navigating to a main module that's not Reports, close Reports if expanded (unless collapsed)
     if (!isCollapsed && (
         currentPath.startsWith('/sales') || 
+        currentPath.startsWith('/purchases') ||
         currentPath.startsWith('/products') || 
         currentPath.startsWith('/accounts') || 
         currentPath.startsWith('/advance-setup') || 

@@ -93,6 +93,14 @@ import LoyaltyCards from './pages/LoyaltyCards';
 import Customers from './pages/Customers';
 import StoreSelection from './pages/StoreSelection';
 import POS from './pages/POS';
+import Purchases from './pages/Purchases';
+import VendorGroups from './pages/VendorGroups';
+import Vendors from './pages/Vendors';
+import PurchasingOrder from './pages/PurchasingOrder';
+import PurchaseInvoice from './pages/PurchaseInvoice';
+import InvoicePayments from './pages/InvoicePayments';
+import ReturnsOutReasons from './pages/ReturnsOutReasons';
+import ReturnsOut from './pages/ReturnsOut';
 
 // Create a client with default options
 const queryClient = new QueryClient({
@@ -435,6 +443,95 @@ const AppContent: React.FC = () => {
                   <ProtectedRoute>
                     <Layout>
                       <Customers />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              
+              {/* Purchases Routes */}
+              <Route
+                path="/purchases"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Purchases />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              
+              <Route
+                path="/purchases/vendor-groups"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <VendorGroups />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              
+              <Route
+                path="/purchases/vendors"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Vendors />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              
+              <Route
+                path="/purchases/purchasing-order"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <PurchasingOrder />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              
+              <Route
+                path="/purchases/invoice"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <PurchaseInvoice />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              
+              <Route
+                path="/purchases/invoice-payments"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <InvoicePayments />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              
+              <Route
+                path="/purchases/returns-out-reasons"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <ReturnsOutReasons />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              
+              <Route
+                path="/purchases/returns-out"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <ReturnsOut />
                     </Layout>
                   </ProtectedRoute>
                 }

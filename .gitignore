@@ -12,6 +12,7 @@
 
 # production
 /build
+compile.sh
 
 # misc
 .DS_Store
