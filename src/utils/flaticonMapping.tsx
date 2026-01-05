@@ -43,6 +43,7 @@ export const flaticonMap: Record<string, string> = {
   
   // Building & Location
   'Building': 'fi-rr-building',
+  'Store': 'fi-rr-store',
   'CreditCard': 'fi-rr-credit-card',
   
   // Actions
