@@ -127,7 +127,7 @@ const VendorGroups: React.FC = () => {
 
   const columns = useMemo(() => [
     {
-      key: 'group_name' as keyof VendorGroup,
+      key: 'vendor_group_name' as keyof VendorGroup,
       header: 'Group Name',
       sortable: true,
       render: (vendorGroup: VendorGroup) => (
@@ -135,7 +135,7 @@ const VendorGroups: React.FC = () => {
           <div className="p-1 bg-blue-100 rounded">
             <Users className="w-4 h-4 text-blue-600" />
           </div>
-          <div className="font-medium text-gray-900">{vendorGroup.group_name}</div>
+          <div className="font-medium text-gray-900">{vendorGroup.vendor_group_name}</div>
           {vendorGroup.is_default && (
             <span title="Default Group">
               <Star className="w-4 h-4 text-yellow-500" />
@@ -145,12 +145,12 @@ const VendorGroups: React.FC = () => {
       )
     },
     {
-      key: 'group_code' as keyof VendorGroup,
+      key: 'vendor_group_code' as keyof VendorGroup,
       header: 'Group Code',
       sortable: true,
       render: (vendorGroup: VendorGroup) => (
         <div className="font-mono text-sm text-gray-600 bg-gray-50 px-2 py-1 rounded">
-          {vendorGroup.group_code}
+          {vendorGroup.vendor_group_code}
         </div>
       )
     },
@@ -577,7 +577,7 @@ const VendorGroups: React.FC = () => {
         onClose={() => setDeletingVendorGroup(null)}
         onConfirm={confirmDelete}
         title="Delete Vendor Group"
-        message={`Are you sure you want to delete "${deletingVendorGroup?.group_name}"? This action cannot be undone.`}
+        message={`Are you sure you want to delete "${deletingVendorGroup?.vendor_group_name}"? This action cannot be undone.`}
         confirmText="Delete"
         cancelText="Cancel"
         isLoading={isDeleting}
@@ -601,11 +601,11 @@ const VendorGroups: React.FC = () => {
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Group Name</label>
-                <p className="mt-1 text-sm text-gray-900">{viewingVendorGroup.group_name}</p>
+                <p className="mt-1 text-sm text-gray-900">{viewingVendorGroup.vendor_group_name}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Group Code</label>
-                <p className="mt-1 text-sm text-gray-900">{viewingVendorGroup.group_code}</p>
+                <p className="mt-1 text-sm text-gray-900">{viewingVendorGroup.vendor_group_code}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Default Group</label>

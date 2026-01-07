@@ -2,8 +2,8 @@ import { api } from './api';
 
 export interface VendorGroup {
   id: string;
-  group_name: string;
-  group_code: string;
+  vendor_group_name: string;
+  vendor_group_code: string;
   is_default: boolean;
   description?: string;
   is_active: boolean;
@@ -43,7 +43,7 @@ export interface VendorGroup {
 }
 
 export interface VendorGroupFormData {
-  group_name: string;
+  vendor_group_name: string;
   is_default: boolean;
   description?: string;
   account_payable_id?: string;

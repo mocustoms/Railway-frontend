@@ -17,7 +17,7 @@ interface VendorGroupFormProps {
 }
 
 const validationSchema = yup.object({
-  group_name: yup
+  vendor_group_name: yup
     .string()
     .required('Group name is required')
     .min(1, 'Group name must not be empty')
@@ -53,7 +53,7 @@ const VendorGroupForm: React.FC<VendorGroupFormProps> = ({
     resolver: yupResolver(validationSchema),
     mode: 'onChange',
     defaultValues: {
-      group_name: '',
+      vendor_group_name: '',
       is_default: false,
       description: '',
       account_payable_id: '',
@@ -65,7 +65,7 @@ const VendorGroupForm: React.FC<VendorGroupFormProps> = ({
   useEffect(() => {
     if (vendorGroup) {
       reset({
-        group_name: vendorGroup.group_name,
+        vendor_group_name: vendorGroup.vendor_group_name,
         is_default: vendorGroup.is_default,
         description: vendorGroup.description || '',
         account_payable_id: vendorGroup.account_payable_id || '',
@@ -73,7 +73,7 @@ const VendorGroupForm: React.FC<VendorGroupFormProps> = ({
       });
     } else {
       reset({
-        group_name: '',
+        vendor_group_name: '',
         is_default: false,
         description: '',
         account_payable_id: '',
@@ -97,14 +97,14 @@ const VendorGroupForm: React.FC<VendorGroupFormProps> = ({
         {/* Group Name */}
         <div className="md:col-span-1">
           <Controller
-            name="group_name"
+            name="vendor_group_name"
             control={control}
             render={({ field }) => (
               <Input
                 label="Group Name *"
                 {...field}
                 placeholder="Enter group name"
-                error={errors.group_name?.message}
+                error={errors.vendor_group_name?.message}
                 disabled={isLoading}
               />
             )}
@@ -118,7 +118,7 @@ const VendorGroupForm: React.FC<VendorGroupFormProps> = ({
               Group Code
             </label>
             <div className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-gray-600">
-              {vendorGroup.group_code}
+              {vendorGroup.vendor_group_code}
             </div>
             <p className="mt-1 text-xs text-gray-500">Code is automatically generated</p>
           </div>
