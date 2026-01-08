@@ -240,6 +240,12 @@ const StockAdjustmentForm: React.FC<StockAdjustmentFormProps> = ({
     }
   });
 
+  // Sort state for items table
+  const [sortConfig, setSortConfig] = useState<{ key: string | null; direction: 'asc' | 'desc' }>({
+    key: null,
+    direction: 'asc'
+  });
+
   // Save column visibility to localStorage whenever it changes
   useEffect(() => {
     try {
@@ -339,6 +345,22 @@ const StockAdjustmentForm: React.FC<StockAdjustmentFormProps> = ({
 
     fetchFullStockAdjustment();
   }, [stockAdjustment]);
+
+  // Handle column sorting
+  const handleSort = (columnKey: string) => {
+    const newDirection: 'asc' | 'desc' = sortConfig.key === columnKey && sortConfig.direction === 'asc' ? 'desc' : 'asc';
+    setSortConfig({ key: columnKey, direction: newDirection });
+  };
+
+  // Get sort indicator for a column
+  const getSortIndicator = (columnKey: string) => {
+    if (sortConfig.key !== columnKey) {
+      return <ChevronUp size={14} className="text-gray-300" />;
+    }
+    return sortConfig.direction === 'asc' ? 
+      <ChevronUp size={14} className="text-blue-600" /> : 
+      <ChevronDown size={14} className="text-blue-600" />;
+  };
 
   // Auto-select adjustment type and accounts when adjustment reason changes
   useEffect(() => {
@@ -1698,43 +1720,91 @@ const StockAdjustmentForm: React.FC<StockAdjustmentFormProps> = ({
                         <thead className="bg-gray-50 sticky top-0 z-10">
                           <tr>
                             {visibleColumns.product && (
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">
-                              Product
+                            <th 
+                              className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48 cursor-pointer hover:bg-gray-100 transition-colors"
+                              onClick={() => handleSort('product')}
+                            >
+                              <div className="flex items-center space-x-1">
+                                <span>Product</span>
+                                {getSortIndicator('product')}
+                              </div>
                             </th>
                             )}
                             {visibleColumns.currentStock && (
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
-                              Current Stock
+                            <th 
+                              className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32 cursor-pointer hover:bg-gray-100 transition-colors"
+                              onClick={() => handleSort('currentStock')}
+                            >
+                              <div className="flex items-center space-x-1">
+                                <span>Current Stock</span>
+                                {getSortIndicator('currentStock')}
+                              </div>
                             </th>
                             )}
                             {visibleColumns.newQuantity && (
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
-                              New Quantity
+                            <th 
+                              className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40 cursor-pointer hover:bg-gray-100 transition-colors"
+                              onClick={() => handleSort('newQuantity')}
+                            >
+                              <div className="flex items-center space-x-1">
+                                <span>New Quantity</span>
+                                {getSortIndicator('newQuantity')}
+                              </div>
                             </th>
                             )}
                             {visibleColumns.unitCost && (
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">
-                              Unit Cost
+                            <th 
+                              className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48 cursor-pointer hover:bg-gray-100 transition-colors"
+                              onClick={() => handleSort('unitCost')}
+                            >
+                              <div className="flex items-center space-x-1">
+                                <span>Unit Cost</span>
+                                {getSortIndicator('unitCost')}
+                              </div>
                             </th>
                             )}
                             {visibleColumns.unitAverageCost && (
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-36">
-                              Unit Average Cost
+                            <th 
+                              className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-36 cursor-pointer hover:bg-gray-100 transition-colors"
+                              onClick={() => handleSort('unitAverageCost')}
+                            >
+                              <div className="flex items-center space-x-1">
+                                <span>Unit Average Cost</span>
+                                {getSortIndicator('unitAverageCost')}
+                              </div>
                             </th>
                             )}
                             {visibleColumns.adjustmentAmount && (
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
-                              Adjustment Amount ({watchedAdjustmentType === 'add' ? 'Add' : 'Deduct'})
+                            <th 
+                              className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40 cursor-pointer hover:bg-gray-100 transition-colors"
+                              onClick={() => handleSort('adjustmentAmount')}
+                            >
+                              <div className="flex items-center space-x-1">
+                                <span>Adjustment Amount ({watchedAdjustmentType === 'add' ? 'Add' : 'Deduct'})</span>
+                                {getSortIndicator('adjustmentAmount')}
+                              </div>
                             </th>
                             )}
                             {visibleColumns.newStock && (
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
-                              New Stock
+                            <th 
+                              className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32 cursor-pointer hover:bg-gray-100 transition-colors"
+                              onClick={() => handleSort('newStock')}
+                            >
+                              <div className="flex items-center space-x-1">
+                                <span>New Stock</span>
+                                {getSortIndicator('newStock')}
+                              </div>
                             </th>
                             )}
                             {visibleColumns.totalValue && (
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
-                              Total Value
+                            <th 
+                              className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32 cursor-pointer hover:bg-gray-100 transition-colors"
+                              onClick={() => handleSort('totalValue')}
+                            >
+                              <div className="flex items-center space-x-1">
+                                <span>Total Value</span>
+                                {getSortIndicator('totalValue')}
+                              </div>
                             </th>
                             )}
                             {visibleColumns.exchangeRate && (
@@ -1775,16 +1845,87 @@ const StockAdjustmentForm: React.FC<StockAdjustmentFormProps> = ({
                           </tr>
                         </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {fields.map((field, index) => {
-                          const item = watchedItems[index];
-                          const product = getProductInfo(item?.product_id || '');
-                          const currentQuantity = product?.currentQuantity || 0;
-                          // Calculate difference based on adjustment type
-                          // For Add: difference = adjusted_stock (amount to add)
-                          // For Deduct: difference = adjusted_stock (amount to deduct)
-                          const difference = Number(item?.adjusted_stock || 0);
-                          const isValidAdjustment = difference > 0;
+                        {(() => {
+                          // Create array with indices and computed values for sorting
+                          const sortableItems = fields.map((field, index) => {
+                            const item = watchedItems[index];
+                            const product = getProductInfo(item?.product_id || '');
+                            const currentQuantity = product?.currentQuantity || 0;
+                            const difference = Number(item?.adjusted_stock || 0);
+                            const isValidAdjustment = difference > 0;
+                            const newStock = watchedAdjustmentType === 'add' 
+                              ? (currentQuantity + difference)
+                              : Math.max(0, currentQuantity - difference);
+                            const totalValue = calculateItemTotal(item, currentQuantity);
 
+                            return {
+                              index,
+                              field,
+                              item,
+                              product,
+                              currentQuantity,
+                              difference,
+                              isValidAdjustment,
+                              newStock,
+                              totalValue
+                            };
+                          });
+
+                          // Apply sorting if a column is selected
+                          if (sortConfig.key) {
+                            sortableItems.sort((a, b) => {
+                              let aValue: any;
+                              let bValue: any;
+
+                              switch (sortConfig.key) {
+                                case 'product':
+                                  aValue = a.product?.name || '';
+                                  bValue = b.product?.name || '';
+                                  break;
+                                case 'currentStock':
+                                  aValue = a.currentQuantity;
+                                  bValue = b.currentQuantity;
+                                  break;
+                                case 'newQuantity':
+                                  aValue = Number(a.item?.adjusted_stock || 0);
+                                  bValue = Number(b.item?.adjusted_stock || 0);
+                                  break;
+                                case 'unitCost':
+                                  aValue = Number(a.item?.user_unit_cost || 0);
+                                  bValue = Number(b.item?.user_unit_cost || 0);
+                                  break;
+                                case 'unitAverageCost':
+                                  aValue = a.product?.average_cost || 0;
+                                  bValue = b.product?.average_cost || 0;
+                                  break;
+                                case 'adjustmentAmount':
+                                  aValue = a.difference;
+                                  bValue = b.difference;
+                                  break;
+                                case 'newStock':
+                                  aValue = a.newStock;
+                                  bValue = b.newStock;
+                                  break;
+                                case 'totalValue':
+                                  aValue = a.totalValue;
+                                  bValue = b.totalValue;
+                                  break;
+                                default:
+                                  return 0;
+                              }
+
+                              if (typeof aValue === 'string') {
+                                aValue = aValue.toLowerCase();
+                                bValue = bValue.toLowerCase();
+                              }
+
+                              if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+                              if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+                              return 0;
+                            });
+                          }
+
+                          return sortableItems.map(({ index, field, item, product, currentQuantity, difference, isValidAdjustment }) => {
                           return (
                             <tr key={field.id} className="hover:bg-gray-50">
                               {/* Product Info */}
@@ -2116,7 +2257,8 @@ const StockAdjustmentForm: React.FC<StockAdjustmentFormProps> = ({
                               )}
                             </tr>
                           );
-                        })}
+                        });
+                        })()}
                       </tbody>
                     </table>
                   </div>
