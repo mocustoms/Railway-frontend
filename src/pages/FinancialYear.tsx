@@ -347,15 +347,43 @@ const FinancialYearPage: React.FC = () => {
       visible: true,
       render: (year: any) => (
         <div className="flex items-center space-x-2">
-          <button onClick={() => handleEdit(year)} className="text-blue-600 hover:text-blue-900 p-1" title="Edit">
-            <Edit size={16} />
-          </button>
-          <button onClick={() => handleDelete(year)} className="text-red-600 hover:text-red-900 p-1" title="Delete">
-            <Trash2 size={16} />
-          </button>
           <button onClick={() => handleView(year)} className="text-gray-600 hover:text-gray-900 p-1" title="View">
             <Eye size={16} />
           </button>
+          {!year.isClosed && (
+            <button onClick={() => handleEdit(year)} className="text-blue-600 hover:text-blue-900 p-1" title="Edit">
+              <Edit size={16} />
+            </button>
+          )}
+          {canCloseYear(year) && (
+            <button 
+              onClick={() => {
+                setSelectedYear(year);
+                setShowCloseModal(true);
+              }} 
+              className="text-red-600 hover:text-red-900 p-1" 
+              title="Close Financial Year"
+            >
+              <XCircle size={16} />
+            </button>
+          )}
+          {canReopenYear(year) && (
+            <button 
+              onClick={() => {
+                setSelectedYear(year);
+                setShowReopenModal(true);
+              }} 
+              className="text-yellow-600 hover:text-yellow-900 p-1" 
+              title="Reopen Financial Year"
+            >
+              <Clock size={16} />
+            </button>
+          )}
+          {!year.isClosed && (
+            <button onClick={() => handleDelete(year)} className="text-red-600 hover:text-red-900 p-1" title="Delete">
+              <Trash2 size={16} />
+            </button>
+          )}
         </div>
       )
     }
