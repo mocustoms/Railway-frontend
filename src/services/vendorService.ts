@@ -15,10 +15,10 @@ export interface VendorFormData {
 export interface Vendor extends VendorFormData {
   id: string;
   vendor_id: string;
-  group_name?: string;
+  vendor_group_name?: string;
   default_liability_account_id?: string;
   default_liability_account_name?: string;
-  account_payable_name?: string;
+  default_payable_account_name?: string;
   account_balance?: number;
   debt_balance?: number;
   deposit_balance?: number;

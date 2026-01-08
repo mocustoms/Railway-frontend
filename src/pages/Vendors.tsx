@@ -70,7 +70,7 @@ const Vendors: React.FC = () => {
   React.useEffect(() => {
     (async () => {
       try {
-        const groupsResp = await vendorGroupService.getVendorGroups(1, 1000, { search: '', status: 'all' } as any, { key: 'group_name', direction: 'asc' } as any);
+        const groupsResp = await vendorGroupService.getVendorGroups(1, 1000, { search: '', status: 'all' } as any, { key: 'vendor_group_name', direction: 'asc' } as any);
         setVendorGroups(groupsResp.data || []);
       } catch {}
     })();
@@ -96,19 +96,19 @@ const Vendors: React.FC = () => {
       )
     },
     {
-      key: 'group_name',
+      key: 'vendor_group_name',
       header: 'Vendor Group',
       sortable: true,
       render: (row: any) => (
-        <div className="text-gray-700">{row.group_name || '-'}</div>
+        <div className="text-gray-700">{row.vendor_group_name || '-'}</div>
       )
     },
     {
-      key: 'account_payable_name',
+      key: 'default_payable_account_name',
       header: 'Payable Account',
       sortable: true,
       render: (row: any) => (
-        <div className="text-gray-700">{row.account_payable_name || '-'}</div>
+        <div className="text-gray-700">{row.default_payable_account_name || '-'}</div>
       )
     },
     {

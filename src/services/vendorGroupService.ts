@@ -108,6 +108,7 @@ export const vendorGroupService = {
     });
 
     const response = await api.get(`/vendor-groups?${params}`);
+    console.log('Vendor Groups Response:', response.data);
     return response.data;
   },
 

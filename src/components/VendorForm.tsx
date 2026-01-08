@@ -14,7 +14,7 @@ import { productCatalogService } from '../services/productCatalogService';
 
 interface VendorFormProps {
   initialValues?: Partial<VendorFormData>;
-  vendorGroups: { id: string; group_name: string; is_default?: boolean; account_payable_id?: string; account_payable_name?: string }[];
+  vendorGroups: { id: string; vendor_group_name: string; is_default?: boolean; account_payable_id?: string; account_payable_name?: string }[];
   onSubmit: (data: VendorFormData) => Promise<void> | void;
   onCancel: () => void;
   isLoading?: boolean;
@@ -108,6 +108,7 @@ const VendorForm: React.FC<VendorFormProps> = ({ initialValues, vendorGroups, on
   const handleGroupChange = (groupId: string) => {
     setValue('vendor_group_id', groupId);
     const found = vendorGroups.find(g => g.id === groupId);
+    console.log('Selected group:', found);
     if (found?.account_payable_id) {
       setValue('default_payable_account_id', found.account_payable_id);
     }
@@ -152,7 +153,7 @@ const VendorForm: React.FC<VendorFormProps> = ({ initialValues, vendorGroups, on
               >
                 <option value="">Select Vendor Group</option>
                 {vendorGroups.map(g => (
-                  <option key={g.id} value={g.id}>{g.group_name}</option>
+                  <option key={g.id} value={g.id}>{g.vendor_group_name}</option>
                 ))}
               </select>
             )}

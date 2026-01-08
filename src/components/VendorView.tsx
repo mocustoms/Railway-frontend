@@ -46,14 +46,14 @@ const VendorView: React.FC<VendorViewProps> = ({ vendor, onClose }) => {
           <label className="block text-sm font-medium text-gray-500 mb-1">
             Vendor Group
           </label>
-          <p className="text-gray-900">{vendor.group_name || '-'}</p>
+          <p className="text-gray-900">{vendor.vendor_group_name || '-'}</p>
         </div>
         
         <div>
           <label className="block text-sm font-medium text-gray-500 mb-1">
             Default Payable Account
           </label>
-          <p className="text-gray-900">{vendor.account_payable_name || '-'}</p>
+          <p className="text-gray-900">{vendor.default_payable_account_name || '-'}</p>
         </div>
         
         <div>
