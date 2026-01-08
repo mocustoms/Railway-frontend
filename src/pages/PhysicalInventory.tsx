@@ -680,23 +680,6 @@ const PhysicalInventory: React.FC = () => {
               <Search className="h-4 w-4" />
               <span>Get Data</span>
             </button>
-            
-            <div className="flex items-center space-x-2">
-              <Store className="h-4 w-4 text-gray-400" />
-              <select
-                value={filters.storeId || ''}
-                onChange={(e) => handleFilter({ storeId: e.target.value })}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-150 hover:border-gray-400"
-                disabled={isLoadingStores}
-              >
-                <option value="">All Stores</option>
-                {stores.map((store: any) => (
-                  <option key={store.id} value={store.id}>
-                    {store.name}
-                  </option>
-                ))}
-              </select>
-            </div>
           </div>
         </div>
 
