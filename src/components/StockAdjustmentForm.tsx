@@ -18,7 +18,8 @@ import {
   Hash,
   Plus,
   Minus,
-  ArrowLeft
+  ArrowLeft,
+  MoreHorizontal
 } from 'lucide-react';
 import { StockAdjustment as StockAdjustmentType, StockAdjustmentFormData, StockAdjustmentItemFormData } from '../types';
 import { stockAdjustmentService } from '../services/stockAdjustmentService';
@@ -200,6 +201,73 @@ const StockAdjustmentForm: React.FC<StockAdjustmentFormProps> = ({
 
   const { accounts } = useAccounts();
   const { adjustmentReasons, isLoading: isLoadingAdjustmentReasons } = useAdjustmentReasons();
+
+  // Constants for localStorage key
+  const STOCK_ADJUSTMENT_COLUMNS_VISIBILITY_KEY = 'easymauzo-stock-adjustment-columns-visibility';
+
+  // Default column visibility (Batch Numbers, Serial Numbers, Notes, Exchange Rate, Equivalent Amount, Unit Average Cost, Expiry Dates hidden by default)
+  const defaultVisibleColumns = {
+    product: true,
+    currentStock: true,
+    newQuantity: true,
+    unitCost: true,
+    unitAverageCost: false, // Hidden by default
+    adjustmentAmount: true,
+    newStock: true,
+    totalValue: true,
+    exchangeRate: false, // Hidden by default
+    equivalentAmount: false, // Hidden by default
+    expiryDates: false, // Hidden by default
+    batchNumbers: false, // Hidden by default
+    serialNumbers: false, // Hidden by default
+    notes: false, // Hidden by default
+    actions: true
+  };
+
+  // Column visibility state for items table - Initialize from localStorage or use defaults
+  const [visibleColumns, setVisibleColumns] = useState(() => {
+    try {
+      const savedState = localStorage.getItem(STOCK_ADJUSTMENT_COLUMNS_VISIBILITY_KEY);
+      if (savedState) {
+        const parsed = JSON.parse(savedState);
+        // Merge with defaults to ensure any new columns are included
+        const merged = { ...defaultVisibleColumns, ...parsed };
+        return merged;
+      }
+      return defaultVisibleColumns;
+    } catch (error) {
+      return defaultVisibleColumns;
+    }
+  });
+
+  // Save column visibility to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem(STOCK_ADJUSTMENT_COLUMNS_VISIBILITY_KEY, JSON.stringify(visibleColumns));
+    } catch (error) {
+      // Handle localStorage errors silently
+    }
+  }, [visibleColumns, STOCK_ADJUSTMENT_COLUMNS_VISIBILITY_KEY]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const dropdown = document.getElementById('stock-adjustment-items-columns-dropdown');
+      const target = event.target as HTMLElement;
+      if (dropdown && !dropdown.contains(target)) {
+        // Check if click is on the More Columns button
+        const button = target.closest('button');
+        if (!button || !button.querySelector('svg') || !button.textContent?.includes('More Columns')) {
+          dropdown.classList.add('hidden');
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const {
     register,
@@ -1509,57 +1577,203 @@ const StockAdjustmentForm: React.FC<StockAdjustmentFormProps> = ({
                     </p>
                   </div>
                 ) : (
-                  <div className="overflow-x-auto max-h-96 overflow-y-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50 sticky top-0 z-10">
-                        <tr>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">
-                            Product
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
-                            Current Stock
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
-                            New Quantity
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
-                            Unit Cost
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-36">
-                            Unit Average Cost
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
-                            Adjustment Amount ({watchedAdjustmentType === 'add' ? 'Add' : 'Deduct'})
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
-                            New Stock
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
-                            Total Value
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
-                            Exchange Rate
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-36">
-                            Equivalent Amount
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
-                            Expiry Dates
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
-                            Batch Numbers
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">
-                            Serial Numbers
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">
-                            Notes
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
-                            Actions
-                          </th>
-                        </tr>
-                      </thead>
+                  <>
+                    {/* More Columns Dropdown */}
+                    <div className="mb-4 flex justify-end">
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const dropdown = document.getElementById('stock-adjustment-items-columns-dropdown');
+                            if (dropdown) {
+                              dropdown.classList.toggle('hidden');
+                            }
+                          }}
+                          className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        >
+                          <MoreHorizontal size={16} className="mr-1" />
+                          More Columns
+                        </button>
+                        
+                        {/* Dropdown Menu */}
+                        <div
+                          id="stock-adjustment-items-columns-dropdown"
+                          className="hidden absolute w-64 bg-white rounded-md shadow-lg border border-gray-200 z-[9999] transition-all duration-200"
+                          style={{
+                            top: '100%',
+                            right: 0,
+                            marginTop: '8px',
+                            maxHeight: '300px'
+                          }}
+                        >
+                          <div className="py-2">
+                            {/* Toggle All Button */}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                const allVisible = Object.values(visibleColumns).every(v => v);
+                                const newState = Object.keys(visibleColumns).reduce((acc, key) => {
+                                  // Keep required columns always visible
+                                  if (key === 'product' || key === 'currentStock' || key === 'newQuantity' || key === 'unitCost' || key === 'actions') {
+                                    acc[key as keyof typeof visibleColumns] = true;
+                                  } else {
+                                    acc[key as keyof typeof visibleColumns] = !allVisible;
+                                  }
+                                  return acc;
+                                }, {} as typeof visibleColumns);
+                                setVisibleColumns(newState);
+                              }}
+                              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 border-b border-gray-100"
+                            >
+                              {Object.entries(visibleColumns).filter(([key]) => 
+                                key !== 'product' && key !== 'currentStock' && key !== 'newQuantity' && key !== 'unitCost' && key !== 'actions'
+                              ).every(([, v]) => v) ? 'Hide All Optional' : 'Show All'}
+                            </button>
+                            
+                            {/* Scrollable Column List */}
+                            <div className="max-h-64 overflow-y-auto">
+                              {Object.entries(visibleColumns).map(([key, visible]) => {
+                                const isRequired = key === 'product' || key === 'currentStock' || key === 'newQuantity' || key === 'unitCost' || key === 'actions';
+                                const columnLabel = key === 'currentStock' ? 'Current Stock' :
+                                  key === 'newQuantity' ? 'New Quantity' :
+                                  key === 'unitCost' ? 'Unit Cost' :
+                                  key === 'unitAverageCost' ? 'Unit Average Cost' :
+                                  key === 'adjustmentAmount' ? 'Adjustment Amount' :
+                                  key === 'newStock' ? 'New Stock' :
+                                  key === 'totalValue' ? 'Total Value' :
+                                  key === 'exchangeRate' ? 'Exchange Rate' :
+                                  key === 'equivalentAmount' ? 'Equivalent Amount' :
+                                  key === 'expiryDates' ? 'Expiry Dates' :
+                                  key === 'batchNumbers' ? 'Batch Numbers' :
+                                  key === 'serialNumbers' ? 'Serial Numbers' :
+                                  key.replace(/([A-Z])/g, ' $1').trim();
+                                
+                                return (
+                                  <button
+                                    key={key}
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      if (!isRequired) {
+                                        setVisibleColumns((prev: typeof defaultVisibleColumns) => ({
+                                          ...prev,
+                                          [key]: !prev[key as keyof typeof prev]
+                                        }));
+                                      }
+                                    }}
+                                    disabled={isRequired}
+                                    className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center justify-between ${
+                                      isRequired ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700'
+                                    }`}
+                                  >
+                                    <span className="truncate capitalize">
+                                      {columnLabel}
+                                    </span>
+                                    <div className="flex items-center space-x-2 flex-shrink-0">
+                                      {visible ? (
+                                        <div className="w-3 h-3 bg-green-600 rounded-full"></div>
+                                      ) : (
+                                        <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
+                                      )}
+                                      {isRequired && (
+                                        <span className="text-xs text-gray-400">Required</span>
+                                      )}
+                                    </div>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="overflow-x-auto max-h-96 overflow-y-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50 sticky top-0 z-10">
+                          <tr>
+                            {visibleColumns.product && (
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">
+                              Product
+                            </th>
+                            )}
+                            {visibleColumns.currentStock && (
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                              Current Stock
+                            </th>
+                            )}
+                            {visibleColumns.newQuantity && (
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
+                              New Quantity
+                            </th>
+                            )}
+                            {visibleColumns.unitCost && (
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">
+                              Unit Cost
+                            </th>
+                            )}
+                            {visibleColumns.unitAverageCost && (
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-36">
+                              Unit Average Cost
+                            </th>
+                            )}
+                            {visibleColumns.adjustmentAmount && (
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
+                              Adjustment Amount ({watchedAdjustmentType === 'add' ? 'Add' : 'Deduct'})
+                            </th>
+                            )}
+                            {visibleColumns.newStock && (
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                              New Stock
+                            </th>
+                            )}
+                            {visibleColumns.totalValue && (
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                              Total Value
+                            </th>
+                            )}
+                            {visibleColumns.exchangeRate && (
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                              Exchange Rate
+                            </th>
+                            )}
+                            {visibleColumns.equivalentAmount && (
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-36">
+                              Equivalent Amount
+                            </th>
+                            )}
+                            {visibleColumns.expiryDates && (
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
+                              Expiry Dates
+                            </th>
+                            )}
+                            {visibleColumns.batchNumbers && (
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
+                              Batch Numbers
+                            </th>
+                            )}
+                            {visibleColumns.serialNumbers && (
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">
+                              Serial Numbers
+                            </th>
+                            )}
+                            {visibleColumns.notes && (
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">
+                              Notes
+                            </th>
+                            )}
+                            {visibleColumns.actions && (
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
+                              Actions
+                            </th>
+                            )}
+                          </tr>
+                        </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
                         {fields.map((field, index) => {
                           const item = watchedItems[index];
@@ -1574,6 +1788,7 @@ const StockAdjustmentForm: React.FC<StockAdjustmentFormProps> = ({
                           return (
                             <tr key={field.id} className="hover:bg-gray-50">
                               {/* Product Info */}
+                              {visibleColumns.product && (
                               <td className="px-4 py-4 whitespace-nowrap">
                                 <div className="flex items-center">
                                   <Package className="h-5 w-5 text-gray-400 mr-3" />
@@ -1588,8 +1803,10 @@ const StockAdjustmentForm: React.FC<StockAdjustmentFormProps> = ({
                                   </div>
                                 </div>
                               </td>
+                              )}
 
                               {/* Current Stock - Read Only */}
+                              {visibleColumns.currentStock && (
                               <td className="px-4 py-4 whitespace-nowrap">
                                 <div className="text-sm text-gray-900 font-medium">
                                   {(product?.currentQuantity || 0).toLocaleString('en-US')}
@@ -1598,19 +1815,23 @@ const StockAdjustmentForm: React.FC<StockAdjustmentFormProps> = ({
                                   <div className="text-xs text-gray-500">{product.unit.name}</div>
                                 )}
                               </td>
+                              )}
 
                               {/* New Quantity */}
+                              {visibleColumns.newQuantity && (
                               <td className="px-4 py-4 whitespace-nowrap">
                                 <Input
                                   {...register(`items.${index}.adjusted_stock`)}
                                   type="number"
                                   min="0"
                                   step="0.01"
-                                  className="w-20"
+                                  className="w-32"
                                 />
                               </td>
+                              )}
 
                               {/* Unit Cost */}
+                              {visibleColumns.unitCost && (
                               <td className="px-4 py-4 whitespace-nowrap">
                                 <div className="flex flex-col space-y-1">
                                   <Input
@@ -1618,13 +1839,15 @@ const StockAdjustmentForm: React.FC<StockAdjustmentFormProps> = ({
                                     type="number"
                                     min="0"
                                     step="0.01"
-                                    className="w-24"
+                                    className="w-40"
                                     placeholder="0.00"
                                   />
                                 </div>
                               </td>
+                              )}
 
                               {/* Unit Average Cost */}
+                              {visibleColumns.unitAverageCost && (
                               <td className="px-4 py-4 whitespace-nowrap">
                                 <div className="flex flex-col space-y-1">
                                   <div className="text-sm font-medium text-gray-900">
@@ -1632,8 +1855,10 @@ const StockAdjustmentForm: React.FC<StockAdjustmentFormProps> = ({
                                   </div>
                                 </div>
                               </td>
+                              )}
 
                               {/* Difference */}
+                              {visibleColumns.adjustmentAmount && (
                               <td className="px-4 py-4 whitespace-nowrap">
                                 <div className="flex flex-col space-y-1">
                                   <div className="flex items-center space-x-1">
@@ -1652,8 +1877,10 @@ const StockAdjustmentForm: React.FC<StockAdjustmentFormProps> = ({
                                   </div>
                                 </div>
                               </td>
+                              )}
 
                               {/* New Stock */}
+                              {visibleColumns.newStock && (
                               <td className="px-4 py-4 whitespace-nowrap">
                                 <div className="flex flex-col space-y-1">
                                   <div className="text-sm font-medium text-gray-900">
@@ -1667,8 +1894,10 @@ const StockAdjustmentForm: React.FC<StockAdjustmentFormProps> = ({
                                   )}
                                 </div>
                               </td>
+                              )}
 
                               {/* Total Value */}
+                              {visibleColumns.totalValue && (
                               <td className="px-4 py-4 whitespace-nowrap">
                                 <div className="flex items-center space-x-1">
                                   <span className="text-sm font-medium text-gray-900">
@@ -1681,8 +1910,10 @@ const StockAdjustmentForm: React.FC<StockAdjustmentFormProps> = ({
                                   )}
                                 </div>
                               </td>
+                              )}
 
                               {/* Exchange Rate */}
+                              {visibleColumns.exchangeRate && (
                               <td className="px-4 py-4 whitespace-nowrap">
                                 <div className="flex flex-col space-y-1">
                                   <div className="text-sm font-medium text-gray-900">
@@ -1697,8 +1928,10 @@ const StockAdjustmentForm: React.FC<StockAdjustmentFormProps> = ({
                                   </div>
                                 </div>
                               </td>
+                              )}
 
                               {/* Equivalent Amount */}
+                              {visibleColumns.equivalentAmount && (
                               <td className="px-4 py-4 whitespace-nowrap">
                                 <div className="flex flex-col space-y-1">
                                   <div className="text-sm font-medium text-gray-900">
@@ -1714,8 +1947,10 @@ const StockAdjustmentForm: React.FC<StockAdjustmentFormProps> = ({
                                   </div>
                                 </div>
                               </td>
+                              )}
 
                               {/* Expiry Dates */}
+                              {visibleColumns.expiryDates && (
                               <td className="px-4 py-4 whitespace-nowrap">
                                 <div className="flex flex-col space-y-2">
                                   <div className="space-y-1">
@@ -1746,8 +1981,10 @@ const StockAdjustmentForm: React.FC<StockAdjustmentFormProps> = ({
                                   </div>
                                 </div>
                               </td>
+                              )}
 
                               {/* Batch Numbers */}
+                              {visibleColumns.batchNumbers && (
                               <td className="px-4 py-4 whitespace-nowrap">
                                 <div className="flex flex-col space-y-2">
                                   <div className="space-y-1">
@@ -1778,8 +2015,10 @@ const StockAdjustmentForm: React.FC<StockAdjustmentFormProps> = ({
                                   </div>
                                 </div>
                               </td>
+                              )}
 
                               {/* Serial Numbers */}
+                              {visibleColumns.serialNumbers && (
                               <td className="px-4 py-4 whitespace-nowrap">
                                 <div className="flex flex-col space-y-2">
                                   <div className="space-y-1">
@@ -1828,8 +2067,10 @@ const StockAdjustmentForm: React.FC<StockAdjustmentFormProps> = ({
                                   </div>
                                 </div>
                               </td>
+                              )}
 
                               {/* Notes */}
+                              {visibleColumns.notes && (
                               <td className="px-4 py-4 whitespace-nowrap">
                                 <div className="relative">
                                   <Textarea
@@ -1859,8 +2100,10 @@ const StockAdjustmentForm: React.FC<StockAdjustmentFormProps> = ({
                                   </div>
                                 </div>
                               </td>
+                              )}
 
                               {/* Actions */}
+                              {visibleColumns.actions && (
                               <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
                                 <button
                                   type="button"
@@ -1870,12 +2113,14 @@ const StockAdjustmentForm: React.FC<StockAdjustmentFormProps> = ({
                                   <Trash2 className="h-4 w-4" />
                                 </button>
                               </td>
+                              )}
                             </tr>
                           );
                         })}
                       </tbody>
                     </table>
                   </div>
+                  </>
                 )}
 
                 {/* Summary */}
