@@ -25,6 +25,7 @@ interface MenuItem {
   description: string;
   expandable?: boolean;
   submenus?: SubmenuItem[];
+  alwaysExpanded?: boolean;
 }
 
 interface MenuSection {
@@ -280,7 +281,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, isMobileOpen =
     if (path === '/users') {
       return location.pathname === path || 
              location.pathname.startsWith(path + '/') ||
-             location.pathname === '/users/management';
+             location.pathname === '/users/management' ||
+             location.pathname === '/users/roles';
     }
     
     // Default behavior for other modules
@@ -294,7 +296,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, isMobileOpen =
     }
   }, [location.pathname, isMobileOpen, onToggle]);
 
-  // Auto-expand Reports menu when on /reports or any /reports/* path, or when sidebar is collapsed
+    // Auto-expand Reports menu when on /reports or any /reports/* path, or when sidebar is collapsed
   useEffect(() => {
     const currentPath = location.pathname;
     
@@ -428,8 +430,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, isMobileOpen =
                           )}
                         </Link>
                         
-                        {/* Expand/Collapse Button (now inline) */}
-                        {item.expandable && item.submenus && !isCollapsed && (
+                        {/* Expand/Collapse Button (now inline) - Hidden for Users menu */}
+                        {item.expandable && item.submenus && !isCollapsed && item.path !== '/users' && (
                           <button
                             onClick={(e) => {
                               e.preventDefault();
@@ -448,9 +450,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, isMobileOpen =
                       
                       {/* Submenu */}
                       {item.expandable && item.submenus && (
-                        <div className={`transition-all duration-200 ${
-                          isMenuExpanded(item.path) || isCollapsed ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'
-                        }`}>
+                        <div className={item.alwaysExpanded 
+                          ? 'max-h-96 opacity-100' 
+                          : `transition-all duration-200 ${
+                            (isMenuExpanded(item.path) || isCollapsed) ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'
+                          }`
+                        }>
                           <div className={isCollapsed ? 'space-y-1' : 'ml-8 space-y-1'}>
                             {item.submenus.map((submenu) => (
                               <Link

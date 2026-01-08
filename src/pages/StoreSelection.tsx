@@ -37,7 +37,7 @@ const StoreSelection: React.FC = () => {
 
   const handleStoreSelect = (storeId: string) => {
     navigate(`/pos/${storeId}`);
-  };
+    };
 
   const clearSearch = () => {
     setSearchTerm('');
@@ -98,21 +98,21 @@ const StoreSelection: React.FC = () => {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header Section */}
         <div className="mb-8">
-          {/* Home Button - Top Right */}
+        {/* Home Button - Top Right */}
           <div className="flex justify-end mb-6">
-            <button
-              onClick={() => navigate('/app-main')}
-              className="inline-flex items-center px-4 py-2 text-gray-700 hover:text-gray-900 transition-colors"
-            >
-              <Home className="h-5 w-5 mr-2" />
-              Home
-            </button>
-          </div>
+          <button
+            onClick={() => navigate('/app-main')}
+            className="inline-flex items-center px-4 py-2 text-gray-700 hover:text-gray-900 transition-colors"
+          >
+            <Home className="h-5 w-5 mr-2" />
+            Home
+          </button>
+        </div>
 
-          {/* Title */}
-          <h1 className="text-2xl font-semibold text-gray-900 text-center mb-6">
-            Please select Shop
-          </h1>
+        {/* Title */}
+        <h1 className="text-2xl font-semibold text-gray-900 text-center mb-6">
+          Please select Shop
+        </h1>
 
           {/* Search Bar */}
           <div className="relative max-w-md mx-auto mb-6">

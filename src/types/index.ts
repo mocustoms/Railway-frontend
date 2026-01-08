@@ -86,6 +86,64 @@ export interface UserStats {
   usersWithStores: number;
 }
 
+// User Role Management Types
+export interface UserRole {
+  id: string;
+  name: string;
+  description?: string;
+  permissions: string[]; // Array of permission keys
+  is_active: boolean;
+  is_system_role: boolean; // System roles cannot be deleted
+  user_count?: number; // Number of users assigned to this role
+  created_by?: string;
+  updated_by?: string;
+  createdAt: string;
+  updatedAt: string;
+  creator?: User;
+  updater?: User;
+}
+
+export interface UserRoleFormData {
+  name: string;
+  description?: string;
+  permissions: string[];
+  is_active: boolean;
+}
+
+export interface UserRoleFilters {
+  search: string;
+  is_active: string;
+  is_system_role: string;
+}
+
+export interface UserRoleSortConfig {
+  field: string;
+  direction: 'asc' | 'desc';
+}
+
+export interface UserRoleStats {
+  totalRoles: number;
+  activeRoles: number;
+  inactiveRoles: number;
+  systemRoles: number;
+  customRoles: number;
+  rolesWithUsers: number;
+}
+
+export interface Permission {
+  key: string;
+  label: string;
+  description?: string;
+  category: string;
+  module?: string;
+}
+
+export interface PermissionCategory {
+  name: string;
+  label: string;
+  permissions: Permission[];
+}
+
 // Store Management Types
 export interface Store {
   id: string;

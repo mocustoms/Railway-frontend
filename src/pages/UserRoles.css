@@ -1,0 +1,390 @@
+/* User Roles Styles */
+
+.user-roles-container {
+  @apply space-y-6;
+}
+
+.user-role-stats-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6;
+}
+
+.user-role-stats-card {
+  @apply bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow;
+}
+
+.user-role-stats-card-content {
+  @apply flex items-center justify-between;
+}
+
+.user-role-stats-card-info {
+  @apply flex-1;
+}
+
+.user-role-stats-card-title {
+  @apply text-sm font-medium text-gray-600;
+}
+
+.user-role-stats-card-value {
+  @apply text-2xl font-bold text-gray-900;
+}
+
+.user-role-stats-card-icon {
+  @apply p-3 rounded-full;
+}
+
+.user-role-filters-container {
+  @apply bg-white rounded-lg shadow-sm border border-gray-200 p-6;
+}
+
+.user-role-filters-content {
+  @apply flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0 lg:space-x-4;
+}
+
+.user-role-search-container {
+  @apply flex-1 max-w-md;
+}
+
+.user-role-search-input {
+  @apply relative;
+}
+
+.user-role-search-icon {
+  @apply absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400;
+}
+
+.user-role-search-field {
+  @apply pl-10;
+}
+
+.user-role-filters-row {
+  @apply flex flex-wrap items-center space-x-4;
+}
+
+.user-role-table-container {
+  @apply bg-white rounded-lg shadow-sm border border-gray-200;
+}
+
+.user-role-avatar {
+  @apply w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center;
+}
+
+.user-role-avatar-icon {
+  @apply h-4 w-4 text-blue-600;
+}
+
+.user-role-name-container {
+  @apply flex items-center space-x-3;
+}
+
+.user-role-name-content {
+  @apply flex-1;
+}
+
+.user-role-name-primary {
+  @apply font-medium text-gray-900;
+}
+
+.user-role-name-secondary {
+  @apply text-sm text-gray-500;
+}
+
+.user-role-actions-container {
+  @apply flex items-center space-x-2;
+}
+
+.user-role-action-button {
+  @apply p-2 hover:bg-gray-100 rounded-md transition-colors;
+}
+
+.user-role-action-button-edit {
+  @apply text-blue-600 hover:text-blue-700;
+}
+
+.user-role-action-button-delete {
+  @apply text-red-600 hover:text-red-700;
+}
+
+.user-role-modal-container {
+  @apply space-y-6;
+}
+
+.user-role-modal-header {
+  @apply flex items-center justify-between;
+}
+
+.user-role-modal-avatar {
+  @apply w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center;
+}
+
+.user-role-modal-avatar-icon {
+  @apply h-8 w-8 text-blue-600;
+}
+
+.user-role-modal-info {
+  @apply flex-1 ml-4;
+}
+
+.user-role-modal-name {
+  @apply text-2xl font-bold text-gray-900;
+}
+
+.user-role-modal-description {
+  @apply text-gray-600;
+}
+
+.user-role-modal-actions {
+  @apply flex items-center space-x-2;
+}
+
+.user-role-status-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 gap-4;
+}
+
+.user-role-status-card {
+  @apply bg-gray-50 rounded-lg p-4;
+}
+
+.user-role-status-header {
+  @apply flex items-center space-x-2 mb-2;
+}
+
+.user-role-status-icon {
+  @apply h-5 w-5 text-gray-600;
+}
+
+.user-role-status-title {
+  @apply font-medium text-gray-900;
+}
+
+.user-role-status-description {
+  @apply text-sm text-gray-600 mt-1;
+}
+
+.user-role-permissions-section {
+  @apply space-y-4;
+}
+
+.user-role-permissions-header {
+  @apply text-lg font-semibold text-gray-900 flex items-center space-x-2;
+}
+
+.user-role-permissions-list {
+  @apply space-y-3;
+}
+
+.user-role-permission-category {
+  @apply bg-gray-50 border border-gray-200 rounded-lg p-4;
+}
+
+.user-role-permission-category-header {
+  @apply flex items-center space-x-3 mb-3;
+}
+
+.user-role-permission-category-icon {
+  @apply h-5 w-5 text-blue-600;
+}
+
+.user-role-permission-category-title {
+  @apply font-medium text-gray-900;
+}
+
+.user-role-permission-category-count {
+  @apply text-xs text-gray-500 bg-white px-2 py-1 rounded;
+}
+
+.user-role-permissions-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 gap-2;
+}
+
+.user-role-permission-item {
+  @apply flex items-start space-x-2 p-2 bg-white rounded border border-gray-200;
+}
+
+.user-role-permission-icon {
+  @apply h-4 w-4 text-green-600 mt-0.5 flex-shrink-0;
+}
+
+.user-role-permission-content {
+  @apply flex-1 min-w-0;
+}
+
+.user-role-permission-label {
+  @apply text-sm font-medium text-gray-900 truncate;
+}
+
+.user-role-permission-description {
+  @apply text-xs text-gray-600 mt-1 line-clamp-2;
+}
+
+.user-role-usage-section {
+  @apply space-y-4;
+}
+
+.user-role-usage-header {
+  @apply text-lg font-semibold text-gray-900 flex items-center space-x-2;
+}
+
+.user-role-usage-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 gap-4;
+}
+
+.user-role-usage-item {
+  @apply flex items-center space-x-3;
+}
+
+.user-role-usage-icon {
+  @apply h-5 w-5 text-gray-400;
+}
+
+.user-role-usage-label {
+  @apply text-sm text-gray-500;
+}
+
+.user-role-usage-value {
+  @apply font-medium text-gray-900;
+}
+
+.user-role-form-section {
+  @apply space-y-4;
+}
+
+.user-role-form-header {
+  @apply flex items-center space-x-2 mb-4;
+}
+
+.user-role-form-icon {
+  @apply h-5 w-5 text-blue-600;
+}
+
+.user-role-form-title {
+  @apply text-lg font-semibold text-gray-900;
+}
+
+.user-role-permissions-selector {
+  @apply border border-gray-200 rounded-lg max-h-96 overflow-y-auto;
+}
+
+.user-role-permission-category-header-selector {
+  @apply flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 cursor-pointer;
+}
+
+.user-role-permission-category-content {
+  @apply bg-white p-4 space-y-2;
+}
+
+.user-role-permission-item-selector {
+  @apply flex items-start space-x-3 p-2 rounded hover:bg-gray-50 cursor-pointer;
+}
+
+.user-role-permission-checkbox {
+  @apply mt-1;
+}
+
+.user-role-permission-item-content {
+  @apply flex-1;
+}
+
+.user-role-permission-item-label {
+  @apply flex items-center space-x-2;
+}
+
+.user-role-permission-item-name {
+  @apply font-medium text-gray-900 cursor-pointer;
+}
+
+.user-role-permission-item-key {
+  @apply text-xs text-gray-400 font-mono;
+}
+
+.user-role-permission-item-description {
+  @apply text-sm text-gray-600 mt-1;
+}
+
+.user-role-form-actions {
+  @apply flex items-center justify-end space-x-3 pt-6 border-t border-gray-200;
+}
+
+.user-role-form-submit {
+  @apply flex items-center space-x-2;
+}
+
+.user-role-form-submit-loading {
+  @apply animate-spin rounded-full h-4 w-4 border-b-2 border-white;
+}
+
+.user-role-form-submit-icon {
+  @apply h-4 w-4;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .user-role-stats-grid {
+    @apply grid-cols-1;
+  }
+  
+  .user-role-filters-content {
+    @apply flex-col space-y-4;
+  }
+  
+  .user-role-filters-row {
+    @apply flex-col space-y-2 space-x-0;
+  }
+  
+  .user-role-status-grid {
+    @apply grid-cols-1;
+  }
+  
+  .user-role-permissions-grid {
+    @apply grid-cols-1;
+  }
+  
+  .user-role-usage-grid {
+    @apply grid-cols-1;
+  }
+}
+
+/* Animation classes */
+.stat-card-animation {
+  animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.user-role-fade-in {
+  animation: fade-in 0.3s ease-in-out;
+}
+
+.user-role-slide-in {
+  animation: slide-in 0.3s ease-in-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

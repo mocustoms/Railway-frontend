@@ -1715,10 +1715,10 @@ const StockAdjustmentForm: React.FC<StockAdjustmentFormProps> = ({
                       </div>
                     </div>
 
-                    <div className="overflow-x-auto max-h-96 overflow-y-auto">
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50 sticky top-0 z-10">
-                          <tr>
+                  <div className="overflow-x-auto max-h-96 overflow-y-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50 sticky top-0 z-10">
+                        <tr>
                             {visibleColumns.product && (
                             <th 
                               className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48 cursor-pointer hover:bg-gray-100 transition-colors"
@@ -1728,7 +1728,7 @@ const StockAdjustmentForm: React.FC<StockAdjustmentFormProps> = ({
                                 <span>Product</span>
                                 {getSortIndicator('product')}
                               </div>
-                            </th>
+                          </th>
                             )}
                             {visibleColumns.currentStock && (
                             <th 
@@ -1739,7 +1739,7 @@ const StockAdjustmentForm: React.FC<StockAdjustmentFormProps> = ({
                                 <span>Current Stock</span>
                                 {getSortIndicator('currentStock')}
                               </div>
-                            </th>
+                          </th>
                             )}
                             {visibleColumns.newQuantity && (
                             <th 
@@ -1750,7 +1750,7 @@ const StockAdjustmentForm: React.FC<StockAdjustmentFormProps> = ({
                                 <span>New Quantity</span>
                                 {getSortIndicator('newQuantity')}
                               </div>
-                            </th>
+                          </th>
                             )}
                             {visibleColumns.unitCost && (
                             <th 
@@ -1761,7 +1761,7 @@ const StockAdjustmentForm: React.FC<StockAdjustmentFormProps> = ({
                                 <span>Unit Cost</span>
                                 {getSortIndicator('unitCost')}
                               </div>
-                            </th>
+                          </th>
                             )}
                             {visibleColumns.unitAverageCost && (
                             <th 
@@ -1772,7 +1772,7 @@ const StockAdjustmentForm: React.FC<StockAdjustmentFormProps> = ({
                                 <span>Unit Average Cost</span>
                                 {getSortIndicator('unitAverageCost')}
                               </div>
-                            </th>
+                          </th>
                             )}
                             {visibleColumns.adjustmentAmount && (
                             <th 
@@ -1783,7 +1783,7 @@ const StockAdjustmentForm: React.FC<StockAdjustmentFormProps> = ({
                                 <span>Adjustment Amount ({watchedAdjustmentType === 'add' ? 'Add' : 'Deduct'})</span>
                                 {getSortIndicator('adjustmentAmount')}
                               </div>
-                            </th>
+                          </th>
                             )}
                             {visibleColumns.newStock && (
                             <th 
@@ -1794,7 +1794,7 @@ const StockAdjustmentForm: React.FC<StockAdjustmentFormProps> = ({
                                 <span>New Stock</span>
                                 {getSortIndicator('newStock')}
                               </div>
-                            </th>
+                          </th>
                             )}
                             {visibleColumns.totalValue && (
                             <th 
@@ -1805,54 +1805,54 @@ const StockAdjustmentForm: React.FC<StockAdjustmentFormProps> = ({
                                 <span>Total Value</span>
                                 {getSortIndicator('totalValue')}
                               </div>
-                            </th>
+                          </th>
                             )}
                             {visibleColumns.exchangeRate && (
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
-                              Exchange Rate
-                            </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                            Exchange Rate
+                          </th>
                             )}
                             {visibleColumns.equivalentAmount && (
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-36">
-                              Equivalent Amount
-                            </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-36">
+                            Equivalent Amount
+                          </th>
                             )}
                             {visibleColumns.expiryDates && (
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
-                              Expiry Dates
-                            </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
+                            Expiry Dates
+                          </th>
                             )}
                             {visibleColumns.batchNumbers && (
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
-                              Batch Numbers
-                            </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
+                            Batch Numbers
+                          </th>
                             )}
                             {visibleColumns.serialNumbers && (
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">
-                              Serial Numbers
-                            </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">
+                            Serial Numbers
+                          </th>
                             )}
                             {visibleColumns.notes && (
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">
-                              Notes
-                            </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">
+                            Notes
+                          </th>
                             )}
                             {visibleColumns.actions && (
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
-                              Actions
-                            </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
+                            Actions
+                          </th>
                             )}
-                          </tr>
-                        </thead>
+                        </tr>
+                      </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
                         {(() => {
                           // Create array with indices and computed values for sorting
                           const sortableItems = fields.map((field, index) => {
-                            const item = watchedItems[index];
-                            const product = getProductInfo(item?.product_id || '');
-                            const currentQuantity = product?.currentQuantity || 0;
-                            const difference = Number(item?.adjusted_stock || 0);
-                            const isValidAdjustment = difference > 0;
+                          const item = watchedItems[index];
+                          const product = getProductInfo(item?.product_id || '');
+                          const currentQuantity = product?.currentQuantity || 0;
+                          const difference = Number(item?.adjusted_stock || 0);
+                          const isValidAdjustment = difference > 0;
                             const newStock = watchedAdjustmentType === 'add' 
                               ? (currentQuantity + difference)
                               : Math.max(0, currentQuantity - difference);

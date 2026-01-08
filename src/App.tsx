@@ -48,6 +48,7 @@ import SchedulerManagement from './pages/SchedulerManagement';
 import InventoryManagement from './pages/InventoryManagement';
 import Users from './pages/Users';
 import UserManagement from './pages/UserManagement';
+import UserRoles from './pages/UserRoles';
 import ProfileSettings from './pages/ProfileSettings';
 import Reports from './pages/Reports';
 import TaxCodes from './pages/TaxCodes';
@@ -1016,6 +1017,17 @@ const AppContent: React.FC = () => {
                   <ProtectedRoute>
                     <Layout>
                       <UserManagement />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              
+              <Route
+                path="/users/roles"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <UserRoles />
                     </Layout>
                   </ProtectedRoute>
                 }

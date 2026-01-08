@@ -1862,10 +1862,10 @@ const PhysicalInventoryForm: React.FC<PhysicalInventoryFormProps> = ({
                   </div>
                 </div>
 
-                <div className="overflow-x-auto max-h-96 overflow-y-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50 sticky top-0 z-10">
-                      <tr>
+              <div className="overflow-x-auto max-h-96 overflow-y-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50 sticky top-0 z-10">
+                    <tr>
                         {visibleColumns.product && (
                         <th 
                           className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48 cursor-pointer hover:bg-gray-100 transition-colors"
@@ -1875,7 +1875,7 @@ const PhysicalInventoryForm: React.FC<PhysicalInventoryFormProps> = ({
                             <span>Product</span>
                             {getSortIndicator('product')}
                           </div>
-                        </th>
+                      </th>
                         )}
                         {visibleColumns.currentStock && (
                         <th 
@@ -1886,7 +1886,7 @@ const PhysicalInventoryForm: React.FC<PhysicalInventoryFormProps> = ({
                             <span>Current Stock</span>
                             {getSortIndicator('currentStock')}
                           </div>
-                        </th>
+                      </th>
                         )}
                         {visibleColumns.countedQuantity && (
                         <th 
@@ -1897,7 +1897,7 @@ const PhysicalInventoryForm: React.FC<PhysicalInventoryFormProps> = ({
                             <span>Counted Quantity</span>
                             {getSortIndicator('countedQuantity')}
                           </div>
-                        </th>
+                      </th>
                         )}
                         {visibleColumns.unitCost && (
                         <th 
@@ -1908,7 +1908,7 @@ const PhysicalInventoryForm: React.FC<PhysicalInventoryFormProps> = ({
                             <span>Unit Cost</span>
                             {getSortIndicator('unitCost')}
                           </div>
-                        </th>
+                      </th>
                         )}
                         {visibleColumns.unitAverageCost && (
                         <th 
@@ -1919,7 +1919,7 @@ const PhysicalInventoryForm: React.FC<PhysicalInventoryFormProps> = ({
                             <span>Unit Average Cost</span>
                             {getSortIndicator('unitAverageCost')}
                           </div>
-                        </th>
+                      </th>
                         )}
                         {visibleColumns.adjustmentIn && (
                         <th 
@@ -1930,7 +1930,7 @@ const PhysicalInventoryForm: React.FC<PhysicalInventoryFormProps> = ({
                             <span>Adjustment In</span>
                             {getSortIndicator('adjustmentIn')}
                           </div>
-                        </th>
+                      </th>
                         )}
                         {visibleColumns.adjustmentOut && (
                         <th 
@@ -1941,7 +1941,7 @@ const PhysicalInventoryForm: React.FC<PhysicalInventoryFormProps> = ({
                             <span>Adjustment Out</span>
                             {getSortIndicator('adjustmentOut')}
                           </div>
-                        </th>
+                      </th>
                         )}
                         {visibleColumns.newStock && (
                         <th 
@@ -1952,7 +1952,7 @@ const PhysicalInventoryForm: React.FC<PhysicalInventoryFormProps> = ({
                             <span>New Stock</span>
                             {getSortIndicator('newStock')}
                           </div>
-                        </th>
+                      </th>
                         )}
                         {visibleColumns.totalValue && (
                         <th 
@@ -1963,57 +1963,57 @@ const PhysicalInventoryForm: React.FC<PhysicalInventoryFormProps> = ({
                             <span>Total Value</span>
                             {getSortIndicator('totalValue')}
                           </div>
-                        </th>
+                      </th>
                         )}
                         {visibleColumns.exchangeRate && (
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
-                          Exchange Rate
-                        </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                        Exchange Rate
+                      </th>
                         )}
                         {visibleColumns.equivalentAmount && (
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-36">
-                          Equivalent Amount
-                        </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-36">
+                        Equivalent Amount
+                      </th>
                         )}
                         {visibleColumns.expiryDates && (
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
-                          Expiry Dates
-                        </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
+                        Expiry Dates
+                      </th>
                         )}
                         {visibleColumns.batchNumbers && (
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
-                          Batch Numbers
-                        </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
+                        Batch Numbers
+                      </th>
                         )}
                         {visibleColumns.serialNumbers && (
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">
-                          Serial Numbers
-                        </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">
+                        Serial Numbers
+                      </th>
                         )}
                         {visibleColumns.notes && (
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">
-                          Notes
-                        </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">
+                        Notes
+                      </th>
                         )}
                         {visibleColumns.actions && (
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
-                          Actions
-                        </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
+                        Actions
+                      </th>
                         )}
-                      </tr>
-                    </thead>
+                    </tr>
+                  </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {(() => {
                       // Create array with indices and computed values for sorting
                       const sortableItems = fields.map((field, index) => {
-                        const item = watchedItems[index];
-                        const product = getProductInfo(item?.product_id || '');
+                      const item = watchedItems[index];
+                      const product = getProductInfo(item?.product_id || '');
                         const currentQuantity = product?.currentQuantity || item?.current_quantity || 0;
-                        const countedQuantity = Number(item?.counted_quantity || 0);
-                        const { adjustment_in_quantity, adjustment_out_quantity } = calculateAdjustmentQuantities(
-                          currentQuantity,
-                          countedQuantity
-                        );
+                      const countedQuantity = Number(item?.counted_quantity || 0);
+                      const { adjustment_in_quantity, adjustment_out_quantity } = calculateAdjustmentQuantities(
+                        currentQuantity,
+                        countedQuantity
+                      );
                         const totalValue = calculateItemTotal(item, currentQuantity);
                         
                         return {

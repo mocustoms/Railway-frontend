@@ -96,6 +96,7 @@ const routeLabels: Record<string, string> = {
   
   // Users Sub-modules
   '/users/management': 'User Management',
+  '/users/roles': 'User Roles',
   '/profile/settings': 'Profile Settings',
   
   // Reports Sub-modules
