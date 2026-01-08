@@ -14,7 +14,8 @@ import {
   ArrowLeft,
   Filter,
   FileSpreadsheet,
-  FileText
+  FileText,
+  Power
 } from 'lucide-react';
 import { useFinancialYearManagement } from '../hooks/useFinancialYearManagement';
 import { FinancialYear, financialYearStatusOptions } from '../data/financialYearModules';
@@ -171,6 +172,27 @@ const FinancialYearPage: React.FC = () => {
     }
   }, [reopenFinancialYear, closingNotes, confirm]);
 
+  const handleToggleActive = useCallback(async (year: FinancialYear) => {
+    const action = year.isActive ? 'deactivate' : 'activate';
+    const confirmed = await confirm({
+      title: `${action === 'activate' ? 'Activate' : 'Deactivate'} Financial Year`,
+      message: `Are you sure you want to ${action} "${year.name}"?`,
+      confirmText: `Yes, ${action}`,
+      cancelText: 'Cancel',
+      type: action === 'activate' ? 'warning' : 'danger'
+    });
+    
+    if (!confirmed) {
+      return;
+    }
+    
+    try {
+      await updateFinancialYear(year.id, { isActive: !year.isActive } as any);
+    } catch (error) {
+      // Error is already handled by the hook with toast notifications
+    }
+  }, [updateFinancialYear, confirm]);
+
   const handleFormSubmit = useCallback(async (data: any) => {
     try {
       if (editingYear) {
@@ -262,6 +284,20 @@ const FinancialYearPage: React.FC = () => {
     return canSetCurrent && year.isActive && !year.isClosed && !year.isCurrent;
   };
 
+  const canEditOrDelete = (year: FinancialYear) => {
+    // Check if the end date has been reached
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
+    const endDate = new Date(year.endDate);
+    endDate.setHours(0, 0, 0, 0);
+    
+    // Cannot edit or delete if:
+    // 1. End date has passed
+    // 2. Year is closed
+    // 3. Year is current (active financial year)
+    return today <= endDate && !year.isClosed && !year.isCurrent;
+  };
+
   // Table columns configuration
   const columns = [
     {
@@ -345,47 +381,76 @@ const FinancialYearPage: React.FC = () => {
       key: 'actions',
       header: 'Actions',
       visible: true,
-      render: (year: any) => (
-        <div className="flex items-center space-x-2">
-          <button onClick={() => handleView(year)} className="text-gray-600 hover:text-gray-900 p-1" title="View">
-            <Eye size={16} />
-          </button>
-          {!year.isClosed && (
-            <button onClick={() => handleEdit(year)} className="text-blue-600 hover:text-blue-900 p-1" title="Edit">
-              <Edit size={16} />
+      render: (year: any) => {
+        const canEditDelete = canEditOrDelete(year);
+        return (
+          <div className="flex items-center space-x-2">
+            <button onClick={() => handleView(year)} className="text-gray-600 hover:text-gray-900 p-1" title="View">
+              <Eye size={16} />
             </button>
-          )}
-          {canCloseYear(year) && (
+            {canEditDelete && (
+              <button onClick={() => handleEdit(year)} className="text-blue-600 hover:text-blue-900 p-1" title="Edit">
+                <Edit size={16} />
+              </button>
+            )}
+            {!canEditDelete && !year.isClosed && !year.isCurrent && (
+              <button 
+                disabled 
+                className="text-gray-300 p-1 cursor-not-allowed" 
+                title="Cannot edit: End date has been reached"
+              >
+                <Edit size={16} />
+              </button>
+            )}
             <button 
-              onClick={() => {
-                setSelectedYear(year);
-                setShowCloseModal(true);
-              }} 
-              className="text-red-600 hover:text-red-900 p-1" 
-              title="Close Financial Year"
+              onClick={() => handleToggleActive(year)} 
+              className={`p-1 ${year.isActive ? 'text-green-600 hover:text-green-900' : 'text-gray-400 hover:text-gray-600'}`} 
+              title={year.isActive ? 'Deactivate Financial Year' : 'Activate Financial Year'}
+              disabled={isUpdating}
             >
-              <XCircle size={16} />
+              <Power size={16} className={year.isActive ? '' : 'opacity-50'} />
             </button>
-          )}
-          {canReopenYear(year) && (
-            <button 
-              onClick={() => {
-                setSelectedYear(year);
-                setShowReopenModal(true);
-              }} 
-              className="text-yellow-600 hover:text-yellow-900 p-1" 
-              title="Reopen Financial Year"
-            >
-              <Clock size={16} />
-            </button>
-          )}
-          {!year.isClosed && (
-            <button onClick={() => handleDelete(year)} className="text-red-600 hover:text-red-900 p-1" title="Delete">
-              <Trash2 size={16} />
-            </button>
-          )}
-        </div>
-      )
+            {canCloseYear(year) && (
+              <button 
+                onClick={() => {
+                  setSelectedYear(year);
+                  setShowCloseModal(true);
+                }} 
+                className="text-red-600 hover:text-red-900 p-1" 
+                title="Close Financial Year"
+              >
+                <XCircle size={16} />
+              </button>
+            )}
+            {canReopenYear(year) && (
+              <button 
+                onClick={() => {
+                  setSelectedYear(year);
+                  setShowReopenModal(true);
+                }} 
+                className="text-yellow-600 hover:text-yellow-900 p-1" 
+                title="Reopen Financial Year"
+              >
+                <Clock size={16} />
+              </button>
+            )}
+            {canEditDelete && (
+              <button onClick={() => handleDelete(year)} className="text-red-600 hover:text-red-900 p-1" title="Delete">
+                <Trash2 size={16} />
+              </button>
+            )}
+            {!canEditDelete && !year.isClosed && !year.isCurrent && (
+              <button 
+                disabled 
+                className="text-gray-300 p-1 cursor-not-allowed" 
+                title="Cannot delete: End date has been reached"
+              >
+                <Trash2 size={16} />
+              </button>
+            )}
+          </div>
+        );
+      }
     }
   ];
 
