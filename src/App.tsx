@@ -31,6 +31,9 @@ import Accounts from './pages/Accounts';
 import AccountsHome from './pages/AccountsHome';
 import AccountsDashboard from './pages/AccountsDashboard';
 import AccountReports from './pages/AccountReports';
+import Transactions from './pages/Transactions';
+import AccountSettings from './pages/AccountSettings';
+import AccountsHub from './pages/AccountsHub';
 import AccountTypes from './pages/AccountTypes';
 import ChartOfAccounts from './pages/ChartOfAccounts';
 import AccountsModuleLayout from './components/AccountsModuleLayout';
@@ -58,6 +61,7 @@ import BankDetails from './pages/BankDetails';
 import CustomerDeposits from './pages/CustomerDeposits';
 import OpeningBalances from './pages/OpeningBalances';
 import RecordLedgerEntries from './pages/RecordLedgerEntries';
+import Expenses from './pages/Expenses';
 
 // TODO: Import missing product management modules when converted
 import ProductBrandNames from './pages/ProductBrandNames';
@@ -204,6 +208,17 @@ const AppContent: React.FC = () => {
               />
               
               <Route
+                path="/app-accounts/accounts"
+                element={
+                  <ProtectedRoute>
+                    <AccountsModuleLayout>
+                      <AccountsHub />
+                    </AccountsModuleLayout>
+                  </ProtectedRoute>
+                }
+              />
+              
+              <Route
                 path="/app-accounts/account-types"
                 element={
                   <ProtectedRoute>
@@ -280,6 +295,39 @@ const AppContent: React.FC = () => {
               />
               
               <Route
+                path="/app-accounts/transactions"
+                element={
+                  <ProtectedRoute>
+                    <AccountsModuleLayout>
+                      <Transactions />
+                    </AccountsModuleLayout>
+                  </ProtectedRoute>
+                }
+              />
+              
+              <Route
+                path="/app-accounts/reports"
+                element={
+                  <ProtectedRoute>
+                    <AccountsModuleLayout>
+                      <AccountReports />
+                    </AccountsModuleLayout>
+                  </ProtectedRoute>
+                }
+              />
+              
+              <Route
+                path="/app-accounts/settings"
+                element={
+                  <ProtectedRoute>
+                    <AccountsModuleLayout>
+                      <AccountSettings />
+                    </AccountsModuleLayout>
+                  </ProtectedRoute>
+                }
+              />
+              
+              <Route
                 path="/app-accounts/account-reports"
                 element={
                   <ProtectedRoute>
@@ -296,6 +344,17 @@ const AppContent: React.FC = () => {
                   <ProtectedRoute>
                     <AccountsModuleLayout>
                       <TrialBalanceReport />
+                    </AccountsModuleLayout>
+                  </ProtectedRoute>
+                }
+              />
+              
+              <Route
+                path="/app-accounts/settings/expenses"
+                element={
+                  <ProtectedRoute>
+                    <AccountsModuleLayout>
+                      <Expenses />
                     </AccountsModuleLayout>
                   </ProtectedRoute>
                 }

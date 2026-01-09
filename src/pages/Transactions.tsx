@@ -1,22 +1,21 @@
 import React from 'react';
-import { Search, X, Scale, FileText, TrendingUp, BarChart3 } from 'lucide-react';
+import { Search, X, DollarSign, Receipt, FileText, ArrowLeftRight } from 'lucide-react';
 import GridLayout from '../components/GridLayout';
 import Card from '../components/Card';
 import { useNavigate } from 'react-router-dom';
 import ContentContainer from '../components/ContentContainer';
 
-// Hub page for Reports - shows all report sub-modules as cards (matching Purchases module pattern)
-const AccountReports: React.FC = () => {
+const Transactions: React.FC = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = React.useState('');
   const [showSuggestions, setShowSuggestions] = React.useState(false);
 
-  // Search suggestions based on reports functionality
+  // Search suggestions based on transactions functionality
   const suggestions = [
-    { text: 'trial balance', icon: Scale },
-    { text: 'account reports', icon: FileText },
-    { text: 'financial reports', icon: TrendingUp },
-    { text: 'balance reports', icon: BarChart3 }
+    { text: 'opening balances', icon: DollarSign },
+    { text: 'record expenses', icon: Receipt },
+    { text: 'record ledger entries', icon: FileText },
+    { text: 'transfer money', icon: ArrowLeftRight }
   ];
 
   // Filter suggestions based on search term
@@ -32,8 +31,8 @@ const AccountReports: React.FC = () => {
   const handleSuggestionClick = (suggestion: { text: string; icon: any }) => {
     setSearchTerm(suggestion.text);
     setShowSuggestions(false);
-    // Navigate to specific report module
-    const card = reportCards.find(card => 
+    // Navigate to specific transaction module
+    const card = transactionCards.find(card => 
       card.title.toLowerCase().includes(suggestion.text.toLowerCase())
     );
     if (card) {
@@ -46,28 +45,44 @@ const AccountReports: React.FC = () => {
     setShowSuggestions(false);
   };
 
-  // Report module cards
-  const reportCards = [
+  // Transaction module cards
+  const transactionCards = [
     {
-      id: 'trial-balance',
-      title: 'Trial Balance',
-      description: 'View and analyze trial balance',
-      icon: Scale,
-      href: '/app-accounts/trial-balance',
-      tags: ['Trial Balance', 'Financial', 'Reports', 'Analysis']
+      id: 'opening-balances',
+      title: 'Opening Balances',
+      description: 'Set up account opening balances',
+      icon: DollarSign,
+      href: '/app-accounts/opening-balances',
+      tags: ['Balances', 'Opening', 'Setup', 'Accounts']
     },
     {
-      id: 'account-reports',
-      title: 'Account Reports',
-      description: 'View comprehensive account reports',
+      id: 'record-expenses',
+      title: 'Record Expenses',
+      description: 'Record and manage expenses',
+      icon: Receipt,
+      href: '/app-accounts/record-expenses',
+      tags: ['Expenses', 'Record', 'Management', 'Transactions']
+    },
+    {
+      id: 'record-ledger-entries',
+      title: 'Record Ledger Entries',
+      description: 'Create and manage ledger entries',
       icon: FileText,
-      href: '/app-accounts/account-reports',
-      tags: ['Accounts', 'Reports', 'Financial', 'Analysis']
+      href: '/app-accounts/record-ledger-entries',
+      tags: ['Ledger', 'Entries', 'Journal', 'Transactions']
+    },
+    {
+      id: 'transfer-money',
+      title: 'Transfer Money',
+      description: 'Transfer funds between accounts',
+      icon: ArrowLeftRight,
+      href: '/app-accounts/transfer-money',
+      tags: ['Transfer', 'Money', 'Funds', 'Accounts']
     }
   ];
 
-  // Filter report cards based on search term
-  const filteredReportCards = reportCards.filter(card =>
+  // Filter transaction cards based on search term
+  const filteredTransactionCards = transactionCards.filter(card =>
     card.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     card.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
     card.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -82,7 +97,7 @@ const AccountReports: React.FC = () => {
             <Search className="h-5 w-5 text-gray-400 ml-3" />
             <input
               type="text"
-              placeholder="Search report modules..."
+              placeholder="Search transaction modules..."
               value={searchTerm}
               onChange={(e) => handleSearchChange(e.target.value)}
               className="flex-1 px-3 py-2 border-0 focus:ring-0 focus:outline-none"
@@ -121,7 +136,7 @@ const AccountReports: React.FC = () => {
 
         {/* Overview Section */}
         <GridLayout cols={4} gap={6} className="product-grid-animation">
-          {filteredReportCards.map((card, index) => {
+          {filteredTransactionCards.map((card, index) => {
             const IconComponent = card.icon as any;
             return (
               <Card
@@ -138,12 +153,12 @@ const AccountReports: React.FC = () => {
         </GridLayout>
 
         {/* No Results */}
-        {searchTerm && filteredReportCards.length === 0 && (
+        {searchTerm && filteredTransactionCards.length === 0 && (
           <div className="text-center py-12">
-            <Scale className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No Report Modules Found</h3>
+            <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No Transaction Modules Found</h3>
             <p className="text-gray-500">
-              No report modules match your search criteria. Try adjusting your search terms.
+              No transaction modules match your search criteria. Try adjusting your search terms.
             </p>
           </div>
         )}
@@ -152,4 +167,4 @@ const AccountReports: React.FC = () => {
   );
 };
 
-export default AccountReports;
+export default Transactions;

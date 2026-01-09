@@ -56,41 +56,7 @@ const AccountsModuleSidebar: React.FC<AccountsModuleSidebarProps> = ({ isCollaps
     setLogoError(false);
   }, [companyData?.logo]);
 
-  // Auto-expand menus based on current path
-  useEffect(() => {
-    const currentPath = location.pathname;
-    
-    // Auto-expand Accounts menu
-    if (currentPath.startsWith('/app-accounts/account-types') || 
-        currentPath.startsWith('/app-accounts/chart-of-accounts')) {
-      setExpandedMenus(prev => {
-        const newSet = new Set(prev);
-        newSet.add('/app-accounts/accounts');
-        return newSet;
-      });
-    }
-    
-    // Auto-expand Transactions menu
-    if (currentPath.startsWith('/app-accounts/opening-balances') || 
-        currentPath.startsWith('/app-accounts/record-expenses') ||
-        currentPath.startsWith('/app-accounts/record-ledger-entries') ||
-        currentPath.startsWith('/app-accounts/transfer-money')) {
-      setExpandedMenus(prev => {
-        const newSet = new Set(prev);
-        newSet.add('/app-accounts/transactions');
-        return newSet;
-      });
-    }
-    
-    // Auto-expand Reports menu
-    if (currentPath.startsWith('/app-accounts/trial-balance')) {
-      setExpandedMenus(prev => {
-        const newSet = new Set(prev);
-        newSet.add('/app-accounts/reports');
-        return newSet;
-      });
-    }
-  }, [location.pathname]);
+  // Auto-expand menus based on current path (removed for Accounts, Transactions, Reports, and Settings)
 
   const toggleMenu = (path: string) => {
     setExpandedMenus(prev => {
@@ -123,70 +89,25 @@ const AccountsModuleSidebar: React.FC<AccountsModuleSidebarProps> = ({ isCollaps
           path: '/app-accounts/accounts',
           title: 'Accounts',
           icon: getFlaticonIcon('BookOpen'),
-          description: 'Account management',
-          expandable: true,
-          submenus: [
-            {
-              path: '/app-accounts/account-types',
-              title: 'Account Types',
-              icon: getFlaticonIcon('BarChart3'),
-              description: 'Manage account type classifications'
-            },
-            {
-              path: '/app-accounts/chart-of-accounts',
-              title: 'Chart of Accounts',
-              icon: getFlaticonIcon('FolderOpen'),
-              description: 'Configure your chart of accounts structure'
-            }
-          ]
+          description: 'Account management'
         },
         {
           path: '/app-accounts/transactions',
           title: 'Transactions',
           icon: getFlaticonIcon('FileText'),
-          description: 'Transaction management',
-          expandable: true,
-          submenus: [
-            {
-              path: '/app-accounts/opening-balances',
-              title: 'Opening Balances',
-              icon: getFlaticonIcon('DollarSign'),
-              description: 'Set up account opening balances'
-            },
-            {
-              path: '/app-accounts/record-expenses',
-              title: 'Record Expenses',
-              icon: getFlaticonIcon('Receipt'),
-              description: 'Record and manage expenses'
-            },
-            {
-              path: '/app-accounts/record-ledger-entries',
-              title: 'Record Ledger Entries',
-              icon: getFlaticonIcon('FileText'),
-              description: 'Create and manage ledger entries'
-            },
-            {
-              path: '/app-accounts/transfer-money',
-              title: 'Transfer Money',
-              icon: getFlaticonIcon('ArrowLeftRight'),
-              description: 'Transfer funds between accounts'
-            }
-          ]
+          description: 'Transaction management'
         },
         {
           path: '/app-accounts/reports',
           title: 'Reports',
           icon: getFlaticonIcon('Scale'),
-          description: 'Financial reports',
-          expandable: true,
-          submenus: [
-            {
-              path: '/app-accounts/trial-balance',
-              title: 'Trial Balance',
-              icon: getFlaticonIcon('Scale'),
-              description: 'View and analyze trial balance'
-            }
-          ]
+          description: 'Financial reports'
+        },
+        {
+          path: '/app-accounts/settings',
+          title: 'Settings',
+          icon: getFlaticonIcon('Settings'),
+          description: 'Account settings and configuration'
         }
       ]
     }
@@ -290,12 +211,10 @@ const AccountsModuleSidebar: React.FC<AccountsModuleSidebarProps> = ({ isCollaps
                       <div key={item.path}>
                         <div className="flex items-center">
                           <Link
-                            to={item.expandable && !isCollapsed ? '#' : item.path}
+                            to={item.path}
                             onClick={(e) => {
-                              if (item.expandable && !isCollapsed) {
-                                e.preventDefault();
-                                toggleMenu(item.path);
-                              }
+                              // No expand/collapse functionality for Accounts, Transactions, Reports, and Settings
+                              // They navigate directly to their hub pages
                             }}
                             className={`flex items-center flex-1 px-4 py-3 text-sm font-medium transition-all duration-200 relative ${
                               active

@@ -1,22 +1,19 @@
 import React from 'react';
-import { Search, X, Scale, FileText, TrendingUp, BarChart3 } from 'lucide-react';
+import { Search, X, BarChart3, FolderOpen } from 'lucide-react';
 import GridLayout from '../components/GridLayout';
 import Card from '../components/Card';
 import { useNavigate } from 'react-router-dom';
 import ContentContainer from '../components/ContentContainer';
 
-// Hub page for Reports - shows all report sub-modules as cards (matching Purchases module pattern)
-const AccountReports: React.FC = () => {
+const AccountsHub: React.FC = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = React.useState('');
   const [showSuggestions, setShowSuggestions] = React.useState(false);
 
-  // Search suggestions based on reports functionality
+  // Search suggestions based on accounts functionality
   const suggestions = [
-    { text: 'trial balance', icon: Scale },
-    { text: 'account reports', icon: FileText },
-    { text: 'financial reports', icon: TrendingUp },
-    { text: 'balance reports', icon: BarChart3 }
+    { text: 'account types', icon: BarChart3 },
+    { text: 'chart of accounts', icon: FolderOpen }
   ];
 
   // Filter suggestions based on search term
@@ -32,8 +29,8 @@ const AccountReports: React.FC = () => {
   const handleSuggestionClick = (suggestion: { text: string; icon: any }) => {
     setSearchTerm(suggestion.text);
     setShowSuggestions(false);
-    // Navigate to specific report module
-    const card = reportCards.find(card => 
+    // Navigate to specific account module
+    const card = accountCards.find(card => 
       card.title.toLowerCase().includes(suggestion.text.toLowerCase())
     );
     if (card) {
@@ -46,28 +43,28 @@ const AccountReports: React.FC = () => {
     setShowSuggestions(false);
   };
 
-  // Report module cards
-  const reportCards = [
+  // Account module cards
+  const accountCards = [
     {
-      id: 'trial-balance',
-      title: 'Trial Balance',
-      description: 'View and analyze trial balance',
-      icon: Scale,
-      href: '/app-accounts/trial-balance',
-      tags: ['Trial Balance', 'Financial', 'Reports', 'Analysis']
+      id: 'account-types',
+      title: 'Account Types',
+      description: 'Manage account type classifications',
+      icon: BarChart3,
+      href: '/app-accounts/account-types',
+      tags: ['Account Types', 'Classification', 'Management', 'Accounts']
     },
     {
-      id: 'account-reports',
-      title: 'Account Reports',
-      description: 'View comprehensive account reports',
-      icon: FileText,
-      href: '/app-accounts/account-reports',
-      tags: ['Accounts', 'Reports', 'Financial', 'Analysis']
+      id: 'chart-of-accounts',
+      title: 'Chart of Accounts',
+      description: 'Configure your chart of accounts structure',
+      icon: FolderOpen,
+      href: '/app-accounts/chart-of-accounts',
+      tags: ['Chart of Accounts', 'Structure', 'Configuration', 'Accounts']
     }
   ];
 
-  // Filter report cards based on search term
-  const filteredReportCards = reportCards.filter(card =>
+  // Filter account cards based on search term
+  const filteredAccountCards = accountCards.filter(card =>
     card.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     card.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
     card.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -82,7 +79,7 @@ const AccountReports: React.FC = () => {
             <Search className="h-5 w-5 text-gray-400 ml-3" />
             <input
               type="text"
-              placeholder="Search report modules..."
+              placeholder="Search account modules..."
               value={searchTerm}
               onChange={(e) => handleSearchChange(e.target.value)}
               className="flex-1 px-3 py-2 border-0 focus:ring-0 focus:outline-none"
@@ -121,7 +118,7 @@ const AccountReports: React.FC = () => {
 
         {/* Overview Section */}
         <GridLayout cols={4} gap={6} className="product-grid-animation">
-          {filteredReportCards.map((card, index) => {
+          {filteredAccountCards.map((card, index) => {
             const IconComponent = card.icon as any;
             return (
               <Card
@@ -138,12 +135,12 @@ const AccountReports: React.FC = () => {
         </GridLayout>
 
         {/* No Results */}
-        {searchTerm && filteredReportCards.length === 0 && (
+        {searchTerm && filteredAccountCards.length === 0 && (
           <div className="text-center py-12">
-            <Scale className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No Report Modules Found</h3>
+            <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No Account Modules Found</h3>
             <p className="text-gray-500">
-              No report modules match your search criteria. Try adjusting your search terms.
+              No account modules match your search criteria. Try adjusting your search terms.
             </p>
           </div>
         )}
@@ -152,4 +149,4 @@ const AccountReports: React.FC = () => {
   );
 };
 
-export default AccountReports;
+export default AccountsHub;

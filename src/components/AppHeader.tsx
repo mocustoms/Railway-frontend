@@ -76,6 +76,12 @@ const routeLabels: Record<string, string> = {
   '/opening-balances': 'Opening Balances',
   '/linked-accounts': 'Linked Accounts',
   '/accounts/linked-accounts': 'Linked Accounts',
+  // App-Accounts routes
+  '/app-accounts/accounts': 'Accounts',
+  '/app-accounts/transactions': 'Transactions',
+  '/app-accounts/reports': 'Reports',
+  '/app-accounts/settings': 'Settings',
+  '/app-accounts/settings/expenses': 'Expenses',
   
   // Advance Setup Sub-modules
   '/company-setup': 'Company Setup',
