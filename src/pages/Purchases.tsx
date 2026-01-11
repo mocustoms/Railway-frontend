@@ -73,7 +73,7 @@ const Purchases: React.FC = () => {
       title: 'Purchase Invoice',
       description: 'Create and manage purchase invoices and billing',
       icon: FileText,
-      href: '/purchases/invoice',
+      href: '/purchases/purchase-invoices',
       tags: ['Invoices', 'Billing', 'Documents', 'Purchases']
     },
     {

@@ -101,8 +101,8 @@ import POS from './pages/POS';
 import Purchases from './pages/Purchases';
 import VendorGroups from './pages/VendorGroups';
 import Vendors from './pages/Vendors';
-import PurchasingOrder from './pages/PurchasingOrder';
-import PurchaseInvoice from './pages/PurchaseInvoice';
+import PurchasingOrders from './pages/PurchasingOrder';
+import PurchaseInvoices from './pages/PurchaseInvoices';
 import InvoicePayments from './pages/InvoicePayments';
 import ReturnsOutReasons from './pages/ReturnsOutReasons';
 import ReturnsOut from './pages/ReturnsOut';
@@ -547,18 +547,18 @@ const AppContent: React.FC = () => {
                 element={
                   <ProtectedRoute>
                     <Layout>
-                      <PurchasingOrder />
+                      <PurchasingOrders />
                     </Layout>
                   </ProtectedRoute>
                 }
               />
               
               <Route
-                path="/purchases/invoice"
+                path="/purchases/purchase-invoices"
                 element={
                   <ProtectedRoute>
                     <Layout>
-                      <PurchaseInvoice />
+                      <PurchaseInvoices />
                     </Layout>
                   </ProtectedRoute>
                 }

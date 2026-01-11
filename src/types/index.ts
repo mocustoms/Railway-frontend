@@ -2658,6 +2658,20 @@ export interface Customer {
   loyalty_points: number;
 }
 
+export interface Vendor {
+  id: string;
+  vendor_id: string;
+  full_name: string;
+  phone_number?: string;
+  email?: string;
+  address?: string;
+  fax?: string;
+  account_balance?: number;
+  debt_balance?: number;
+  deposit_balance?: number;
+  default_payable_account_id?: string;
+}
+
 export interface PaymentType {
   id: string;
   name: string;
@@ -3392,6 +3406,539 @@ export interface ReceiptSortConfig {
 
 export interface PaginatedReceiptResponse {
   receipts: Receipt[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    itemsPerPage: number;
+  };
+}
+
+// Purchasing Order Types
+export interface PurchasingOrder {
+  id: string;
+  purchasingOrderRefNumber: string;
+  purchasingOrderDate: string;
+  storeId: string;
+  storeName?: string;
+  vendorId: string;
+  vendorName?: string;
+  vendorCode?: string;
+  vendorAddress?: string;
+  vendorFax?: string;
+  vendorPhone?: string;
+  vendorEmail?: string;
+  currencyId?: string;
+  currencyName?: string;
+  currencySymbol?: string;
+  exchangeRateValue?: number;
+  systemDefaultCurrencyId?: string;
+  exchangeRateId?: string;
+  priceCategoryId?: string;
+  priceCategory?: PriceCategory;
+  subtotal: number;
+  taxAmount: number;
+  discountAmount: number;
+  totalAmount: number;
+  amountAfterDiscount?: number;
+  totalWhtAmount?: number;
+  amountAfterWht?: number;
+  equivalentAmount?: number;
+  status: 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired' | 'received';
+  isConverted?: boolean;
+  validUntil?: string;
+  expectedDeliveryDate?: string;
+  shippingAddress?: string;
+  notes?: string;
+  termsConditions?: string;
+  createdBy: string;
+  createdByName?: string;
+  updatedBy?: string;
+  updatedByName?: string;
+  sentBy?: string;
+  sentByName?: string;
+  sentAt?: string;
+  acceptedBy?: string;
+  acceptedByName?: string;
+  acceptedAt?: string;
+  rejectedBy?: string;
+  rejectedByName?: string;
+  rejectedAt?: string;
+  rejectionReason?: string;
+  receivedBy?: string;
+  receivedByName?: string;
+  receivedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+  items?: PurchasingOrderItem[];
+  store?: Store;
+  vendor?: {
+    id: string;
+    vendor_id: string;
+    full_name: string;
+    address?: string;
+    phone_number?: string;
+    email?: string;
+    fax?: string;
+  };
+  currency?: Currency;
+  systemDefaultCurrency?: Currency;
+  exchangeRateRecord?: ExchangeRate;
+  createdByUser?: User;
+  updatedByUser?: User;
+  sentByUser?: User;
+  acceptedByUser?: User;
+  rejectedByUser?: User;
+  receivedByUser?: User;
+}
+
+export interface PurchasingOrderItem {
+  id: string;
+  purchasingOrderId: string;
+  productId: string;
+  productName?: string;
+  productCode?: string;
+  quantity: number;
+  unitPrice: number;
+  discountPercentage?: number;
+  discountAmount?: number;
+  taxPercentage?: number;
+  taxAmount?: number;
+  purchasesTaxId?: string | null;
+  purchasesTaxCode?: TaxCode;
+  whtTaxId?: string | null;
+  whtTaxCode?: TaxCode;
+  whtAmount?: number;
+  priceTaxInclusive?: boolean;
+  currencyId?: string | null;
+  currency?: Currency;
+  exchangeRate?: number;
+  equivalentAmount?: number;
+  amountAfterDiscount?: number;
+  amountAfterWht?: number;
+  lineTotal: number;
+  notes?: string;
+  serialNumbers?: string[];
+  batchNumber?: string;
+  expiryDate?: string;
+  createdBy?: string;
+  updatedBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  product?: Product;
+  createdByUser?: User;
+  updatedByUser?: User;
+}
+
+export interface PurchasingOrderFormData {
+  purchasingOrderRefNumber?: string;
+  purchasingOrderDate: string;
+  storeId: string;
+  vendorId: string;
+  currencyId?: string;
+  exchangeRateValue?: number;
+  systemDefaultCurrencyId?: string;
+  exchangeRateId?: string;
+  priceCategoryId?: string;
+  validUntil?: string;
+  expectedDeliveryDate?: string;
+  shippingAddress?: string;
+  notes?: string;
+  termsConditions?: string;
+  items: PurchasingOrderItemFormData[];
+}
+
+export interface PurchasingOrderItemFormData {
+  productId: string;
+  quantity: number;
+  unitPrice: number;
+  discountPercentage?: number;
+  discountAmount?: number;
+  taxPercentage?: number;
+  taxAmount?: number;
+  purchasesTaxId?: string | null;
+  whtTaxId?: string | null;
+  whtAmount?: number;
+  currencyId?: string | null;
+  exchangeRate?: number;
+  equivalentAmount?: number;
+  amountAfterDiscount?: number;
+  amountAfterWht?: number;
+  lineTotal: number;
+  notes?: string;
+  price_tax_inclusive?: boolean;
+  serialNumbers?: string[];
+  batchNumber?: string;
+  expiryDate?: string;
+}
+
+export interface PurchasingOrderStats {
+  total: number;
+  draft: number;
+  sent: number;
+  accepted: number;
+  rejected: number;
+  expired: number;
+  received: number;
+  totalValue: number;
+  thisMonth: number;
+  lastMonth: number;
+}
+
+export interface PurchasingOrderFilters {
+  search?: string;
+  status?: 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired' | 'received';
+  storeId?: string;
+  vendorId?: string;
+  currencyId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  converted?: 'true' | 'false';
+}
+
+export interface PurchasingOrderSortConfig {
+  field: 'purchasingOrderRefNumber' | 'purchasingOrderDate' | 'vendorName' | 'storeName' | 'totalAmount' | 'status' | 'createdAt' | 'updatedAt' | 'createdBy' | 'updatedBy' | 'sentAt' | 'sentByName' | 'acceptedAt' | 'acceptedByName' | 'rejectedAt' | 'rejectedByName' | 'receivedAt' | 'receivedByName' | 'validUntil' | 'expectedDeliveryDate';
+  direction: 'asc' | 'desc';
+}
+
+export interface PaginatedPurchasingOrderResponse {
+  purchasingOrders: PurchasingOrder[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    itemsPerPage: number;
+  };
+}
+
+// Purchase Invoice Types
+export interface PurchaseInvoice {
+  id: string;
+  invoiceRefNumber: string;
+  invoiceDate: string;
+  dueDate?: string;
+  storeId: string;
+  storeName?: string;
+  vendorId: string;
+  vendorName?: string;
+  vendorCode?: string;
+  vendorAddress?: string;
+  vendorFax?: string;
+  vendorPhone?: string;
+  vendorEmail?: string;
+  purchasingOrderId?: string;
+  purchasingOrderRefNumber?: string;
+  discountReceivedAccountId?: string;
+  discountReceivedAccount?: {
+    id: string;
+    code: string;
+    name: string;
+  };
+  accountPayableId?: string;
+  accountPayable?: {
+    id: string;
+    code: string;
+    name: string;
+  };
+  currencyId?: string;
+  currencyName?: string;
+  currencySymbol?: string;
+  exchangeRate?: number;
+  exchangeRateValue?: number;
+  systemDefaultCurrencyId?: string;
+  exchangeRateId?: string;
+  priceCategoryId?: string;
+  priceCategory?: PriceCategory;
+  subtotal: number;
+  taxAmount: number;
+  discountAmount: number;
+  totalAmount: number;
+  amountAfterDiscount?: number;
+  totalWhtAmount?: number;
+  amountAfterWht?: number;
+  equivalentAmount?: number;
+  paidAmount?: number;
+  balanceAmount?: number;
+  paymentStatus?: 'unpaid' | 'partial' | 'paid' | 'overpaid';
+  status: 'draft' | 'sent' | 'approved' | 'paid' | 'partial_paid' | 'overdue' | 'cancelled' | 'rejected';
+  scheduledType?: 'not_scheduled' | 'one_time' | 'recurring';
+  recurringPeriod?: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  scheduledDate?: string;
+  recurringDayOfWeek?: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
+  recurringDate?: number; // 1-31 for monthly/yearly
+  recurringMonth?: 'january' | 'february' | 'march' | 'april' | 'may' | 'june' | 'july' | 'august' | 'september' | 'october' | 'november' | 'december';
+  startTime?: string; // HH:MM format
+  endTime?: string; // HH:MM format
+  parentInvoiceId?: string; // Reference to parent scheduled invoice for auto-generated invoices
+  notes?: string;
+  termsConditions?: string;
+  createdBy?: string;
+  createdByName?: string;
+  updatedBy?: string;
+  updatedByName?: string;
+  sentBy?: string;
+  sentByName?: string;
+  sentAt?: string;
+  paidAt?: string;
+  cancelledBy?: string;
+  cancelledByName?: string;
+  cancelledAt?: string;
+  cancellationReason?: string;
+  rejectedBy?: string;
+  rejectedByName?: string;
+  rejectedAt?: string;
+  rejectionReason?: string;
+  approvedBy?: string;
+  approvedByName?: string;
+  approvedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  items: PurchaseInvoiceItem[];
+  itemPaidAmounts?: Record<string, number>; // Map of invoice item ID to total paid amount (as of now)
+  store?: Store;
+  vendor?: Vendor;
+  purchasingOrder?: PurchasingOrder;
+  currency?: Currency;
+  systemDefaultCurrency?: Currency;
+  exchangeRateRecord?: ExchangeRate;
+  createdByUser?: User;
+  updatedByUser?: User;
+  sentByUser?: User;
+  cancelledByUser?: User;
+  rejectedByUser?: User;
+  approvedByUser?: User;
+}
+
+// Purchase Invoice Payment Types
+export interface PurchaseInvoicePayment {
+  id: string;
+  paymentReferenceNumber: string;
+  purchaseInvoiceId: string;
+  purchaseInvoiceRefNumber?: string;
+  vendorId: string;
+  vendorName?: string;
+  vendorCode?: string;
+  paymentAmount: number;
+  currencyId: string;
+  currencyName?: string;
+  currencySymbol?: string;
+  exchangeRate: number;
+  exchangeRateId?: string;
+  systemDefaultCurrencyId: string;
+  systemDefaultCurrencyName?: string;
+  systemDefaultCurrencySymbol?: string;
+  equivalentAmount: number;
+  paymentTypeId?: string;
+  paymentTypeName?: string;
+  useVendorDeposit: boolean;
+  depositAmount: number;
+  chequeNumber?: string;
+  bankDetailId?: string;
+  bankDetailName?: string;
+  branch?: string;
+  payableAccountId: string;
+  payableAccountName?: string;
+  payableAccountCode?: string;
+  assetAccountId?: string;
+  assetAccountName?: string;
+  assetAccountCode?: string;
+  liabilityAccountId?: string;
+  liabilityAccountName?: string;
+  liabilityAccountCode?: string;
+  transactionDate: string;
+  financialYearId: string;
+  financialYearName?: string;
+  description?: string;
+  status: 'active' | 'reversed' | 'cancelled';
+  reversedAt?: string;
+  reversedBy?: string;
+  reversedByName?: string;
+  reversalReason?: string;
+  createdBy?: string;
+  createdByName?: string;
+  updatedBy?: string;
+  updatedByName?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  items?: PurchaseInvoicePaymentItem[];
+}
+
+export interface PurchaseInvoicePaymentItem {
+  id: string;
+  paymentId: string;
+  purchaseInvoiceId: string;
+  purchaseInvoiceItemId: string;
+  paymentAmount: number;
+  currencyId: string;
+  exchangeRate: number;
+  equivalentAmount: number;
+  itemTotal: number;
+  itemRemaining: number;
+  createdAt?: string;
+  updatedAt?: string;
+  product?: {
+    id: string;
+    name: string;
+    code: string;
+  };
+}
+
+export interface PurchaseInvoicePaymentStats {
+  total: number;
+  active: number;
+  reversed: number;
+  cancelled: number;
+  totalAmount: number;
+  thisMonth: number;
+  lastMonth: number;
+}
+
+export interface PurchaseInvoicePaymentFilters {
+  search?: string;
+  status?: 'active' | 'reversed' | 'cancelled';
+  vendorId?: string;
+  purchaseInvoiceId?: string;
+  currencyId?: string;
+  paymentTypeId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+export interface PurchaseInvoicePaymentSortConfig {
+  field: 'paymentRefNumber' | 'transactionDate' | 'paymentAmount' | 'equivalentAmount' | 'vendorName' | 'purchaseInvoiceRefNumber' | 'status' | 'createdAt' | 'updatedAt';
+  direction: 'asc' | 'desc';
+}
+
+export interface PaginatedPurchaseInvoicePaymentResponse {
+  payments: PurchaseInvoicePayment[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    itemsPerPage: number;
+  };
+}
+
+export interface PurchaseInvoiceItem {
+  id: string;
+  purchaseInvoiceId: string;
+  productId: string;
+  productName?: string;
+  productCode?: string;
+  quantity: number;
+  unitPrice: number;
+  discountPercentage?: number;
+  discountAmount?: number;
+  taxPercentage?: number;
+  taxAmount?: number;
+  purchasesTaxId?: string | null;
+  purchasesTaxCode?: TaxCode;
+  whtTaxId?: string | null;
+  whtTaxCode?: TaxCode;
+  whtAmount?: number;
+  priceTaxInclusive?: boolean;
+  currencyId?: string | null;
+  currency?: Currency;
+  exchangeRate?: number;
+  equivalentAmount?: number;
+  amountAfterDiscount?: number;
+  amountAfterWht?: number;
+  lineTotal: number;
+  notes?: string;
+  serialNumbers?: string[];
+  batchNumber?: string;
+  expiryDate?: string;
+  createdBy?: string;
+  updatedBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  product?: Product;
+  createdByUser?: User;
+  updatedByUser?: User;
+}
+
+export interface PurchaseInvoiceFormData {
+  invoiceRefNumber?: string;
+  invoiceDate: string;
+  dueDate?: string;
+  storeId: string;
+  vendorId: string;
+  purchasingOrderId?: string;
+  discountReceivedAccountId?: string;
+  accountPayableId?: string;
+  currencyId?: string;
+  exchangeRateValue?: number;
+  systemDefaultCurrencyId?: string;
+  exchangeRateId?: string;
+  priceCategoryId?: string;
+  scheduledType?: 'not_scheduled' | 'one_time' | 'recurring';
+  recurringPeriod?: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  scheduledDate?: string;
+  recurringDayOfWeek?: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
+  recurringDate?: number; // 1-31 for monthly/yearly
+  recurringMonth?: 'january' | 'february' | 'march' | 'april' | 'may' | 'june' | 'july' | 'august' | 'september' | 'october' | 'november' | 'december';
+  startTime?: string; // HH:MM format
+  endTime?: string; // HH:MM format
+  notes?: string;
+  termsConditions?: string;
+  items: PurchaseInvoiceItemFormData[];
+}
+
+export interface PurchaseInvoiceItemFormData {
+  productId: string;
+  quantity: number;
+  unitPrice: number;
+  discountPercentage?: number;
+  discountAmount?: number;
+  taxPercentage?: number;
+  taxAmount?: number;
+  purchasesTaxId?: string | null;
+  whtTaxId?: string | null;
+  whtAmount?: number;
+  currencyId?: string | null;
+  exchangeRate?: number;
+  equivalentAmount?: number;
+  amountAfterDiscount?: number;
+  amountAfterWht?: number;
+  lineTotal: number;
+  notes?: string;
+  price_tax_inclusive?: boolean;
+  serialNumbers?: string[];
+  batchNumber?: string;
+  expiryDate?: string;
+}
+
+export interface PurchaseInvoiceStats {
+  total: number;
+  draft: number;
+  sent: number;
+  paid: number;
+  partialPaid: number;
+  overdue: number;
+  cancelled: number;
+  totalValue: number;
+  thisMonth: number;
+  lastMonth: number;
+}
+
+export interface PurchaseInvoiceFilters {
+  search?: string;
+  status?: 'draft' | 'sent' | 'approved' | 'paid' | 'partial_paid' | 'overdue' | 'cancelled' | 'rejected';
+  paymentStatus?: 'unpaid' | 'partial' | 'paid' | 'overpaid';
+  storeId?: string;
+  vendorId?: string;
+  currencyId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+export interface PurchaseInvoiceSortConfig {
+  field: 'invoiceRefNumber' | 'invoiceDate' | 'dueDate' | 'vendorName' | 'storeName' | 'totalAmount' | 'status' | 'createdAt' | 'updatedAt' | 'createdBy' | 'updatedBy' | 'sentAt' | 'sentByName' | 'paidAt' | 'cancelledAt' | 'cancelledByName' | 'rejectedAt' | 'rejectedByName' | 'paidAmount' | 'balanceAmount';
+  direction: 'asc' | 'desc';
+}
+
+export interface PaginatedPurchaseInvoiceResponse {
+  purchaseInvoices: PurchaseInvoice[];
   pagination: {
     currentPage: number;
     totalPages: number;

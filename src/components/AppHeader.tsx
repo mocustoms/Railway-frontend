@@ -61,7 +61,7 @@ const routeLabels: Record<string, string> = {
   '/purchases/vendor-groups': 'Vendor Groups',
   '/purchases/vendors': 'Vendors',
   '/purchases/purchasing-order': 'Purchasing Order',
-  '/purchases/invoice': 'Purchase Invoice',
+  '/purchases/purchase-invoices': 'Purchase Invoice',
   '/purchases/invoice-payments': 'Invoice Payments',
   '/purchases/returns-out-reasons': 'Returns Out Reasons',
   '/purchases/returns-out': 'Returns Out',

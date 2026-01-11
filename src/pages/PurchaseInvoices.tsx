@@ -2,43 +2,42 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Search, X, Plus, FileText, FileSpreadsheet, ArrowLeft, Eye, Edit, Trash2,
-  Send, CheckCircle, XCircle, Clock, Calendar, Store, RefreshCw, Receipt, DollarSign, Package
+  Send, CheckCircle, XCircle, Clock, Calendar, Store, RefreshCw, Receipt, DollarSign, CreditCard
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { usePurchasingOrderManagement } from '../hooks/usePurchasingOrderManagement';
-import { PurchasingOrder, PurchasingOrderSortConfig, Company } from '../types';
+import { usePurchaseInvoiceManagement } from '../hooks/usePurchaseInvoiceManagement';
+import { PurchaseInvoice, PurchaseInvoiceSortConfig, Company } from '../types';
 import Card from '../components/Card';
 import DataTable from '../components/DataTable';
 import StatusBadge from '../components/StatusBadge';
 import Modal from '../components/Modal';
-import PurchasingOrderForm from '../components/PurchasingOrderForm';
-import PurchasingOrderView from '../components/PurchasingOrderView';
+import PurchaseInvoiceForm from '../components/PurchaseInvoiceForm';
+import PurchaseInvoiceView from '../components/PurchaseInvoiceView';
+import PurchaseInvoicePaymentForm, { InvoicePaymentData } from '../components/PurchaseInvoicePaymentForm';
 import ConfirmDialog from '../components/ConfirmDialog';
-import PurchasingOrderRejectionModal from '../components/PurchasingOrderRejectionModal';
-import PurchasingOrderReopenModal from '../components/PurchasingOrderReopenModal';
+import PurchaseInvoiceRejectModal from '../components/PurchaseInvoiceCancelModal';
+import PurchaseInvoiceCancelModal from '../components/PurchaseInvoiceCancelModal';
 import ContentContainer from '../components/ContentContainer';
 import { formatCurrency, formatDate, formatDateTime } from '../utils/formatters';
-import { purchasingOrderService } from '../services/purchasingOrderService';
+import { purchaseInvoiceService } from '../services/purchaseInvoiceService';
 import { apiService } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 
-const PurchasingOrders: React.FC = () => {
+const PurchaseInvoices: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const {
-    purchasingOrders, stats, stores, totalItems, totalPages, currentPage, pageSize,
+    purchaseInvoices, stats, stores, totalItems, totalPages, currentPage, pageSize,
     isLoading, isCreating, isUpdating, isDeleting,
-    isSending, isAccepting, isRejecting, isReceiving, isReopening,
-    error, handleSearch, handlePageChange, handlePageSizeChange,
-    handleSort, handleFilter, handleManualFetch, handleDateFilterChange, 
-    createPurchasingOrder, updatePurchasingOrder,
-    deletePurchasingOrder, sendPurchasingOrder, acceptPurchasingOrder, 
-    rejectPurchasingOrder, receivePurchasingOrder, reopenPurchasingOrder,
-    exportToExcel, exportToPDF, refetchPurchasingOrders,
-    canCreate, canEdit, canDelete, canExport, canSend, canAccept, canReject, canReceive,
+    isSending, isApproving, isRejecting, isCancelling,
+    error,     handleSearch, handlePageChange, handlePageSizeChange,
+    handleSort, handleFilter, handleManualFetch, handleDateFilterChange, createPurchaseInvoice, updatePurchaseInvoice,
+    deletePurchaseInvoice, sendPurchaseInvoice, approveInvoice, rejectPurchaseInvoice, cancelPurchaseInvoice,
+    exportToExcel, exportToPDF, refetchPurchaseInvoices,
+    canCreate, canEdit, canDelete, canExport, canSend, canApprove, canReject, canCancel,
     sortConfig, filters, searchTerm
-  } = usePurchasingOrderManagement();
+  } = usePurchaseInvoiceManagement();
 
   // Fetch company data to get default currency
   const { data: companyData } = useQuery<Company | null>({
@@ -58,12 +57,14 @@ const PurchasingOrders: React.FC = () => {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
-  const [isRejectionModalOpen, setIsRejectionModalOpen] = useState(false);
-  const [isReopenModalOpen, setIsReopenModalOpen] = useState(false);
-  const [selectedPurchasingOrder, setSelectedPurchasingOrder] = useState<PurchasingOrder | null>(null);
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isRecordingPayment, setIsRecordingPayment] = useState(false);
+  const [selectedPurchaseInvoice, setSelectedPurchaseInvoice] = useState<PurchaseInvoice | null>(null);
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
-  const [actionType, setActionType] = useState<'send' | 'accept' | 'reject' | 'receive'>('send');
-  const [activeTab, setActiveTab] = useState<'all' | 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired' | 'received' | 'converted'>('all');
+  const [actionType, setActionType] = useState<'send' | 'approve' | 'reject'>('send');
+  const [activeTab, setActiveTab] = useState<'all' | 'draft' | 'sent' | 'approved' | 'paid' | 'partial_paid' | 'overdue' | 'cancelled' | 'rejected'>('all');
 
   const showingStart = useMemo(() => {
     return totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
@@ -73,279 +74,308 @@ const PurchasingOrders: React.FC = () => {
     return Math.min(currentPage * pageSize, totalItems);
   }, [currentPage, pageSize, totalItems]);
 
+  // Handle status tab change
+  const handleTabChange = useCallback((tab: 'all' | 'draft' | 'sent' | 'approved' | 'paid' | 'partial_paid' | 'overdue' | 'cancelled' | 'rejected') => {
+    setActiveTab(tab);
+    if (tab === 'all') {
+      // Show all invoices, no status filter (keep payment status filter if set)
+      handleFilter({ 
+        status: undefined,
+        paymentStatus: filters.paymentStatus
+      });
+    } else {
+      // Filter by status (keep payment status filter if set)
+      handleFilter({ 
+        status: tab,
+        paymentStatus: filters.paymentStatus
+      });
+    }
+    handlePageChange(1); // Reset to first page when switching tabs
+  }, [handleFilter, handlePageChange, filters.paymentStatus]);
+
   const handleCreate = () => {
-    setSelectedPurchasingOrder(null);
+    setSelectedPurchaseInvoice(null);
     setModalMode('create');
     setIsModalOpen(true);
   };
 
-  // Handle tab change
-  const handleTabChange = useCallback((tab: 'all' | 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired' | 'received' | 'converted') => {
-    setActiveTab(tab);
-    if (tab === 'converted') {
-      // Show only converted orders, no status filter
-      handleFilter({ converted: 'true', status: undefined });
-    } else if (tab === 'all') {
-      // Show all orders, no status filter
-      handleFilter({ converted: undefined, status: undefined });
-    } else {
-      // Filter by status (draft, sent, accepted, rejected, expired, received)
-      handleFilter({ converted: undefined, status: tab });
-    }
-    handlePageChange(1); // Reset to first page when switching tabs
-  }, [handleFilter, handlePageChange]);
-
-  const handleEdit = useCallback(async (order: PurchasingOrder) => {
-    // Prevent editing non-draft orders
-    if (order.status !== 'draft') {
-      toast.error('Only draft purchasing orders can be edited');
+  const handleEdit = useCallback(async (invoice: PurchaseInvoice) => {
+    // Prevent editing approved, paid, or cancelled invoices
+    if (invoice.status === 'approved' || invoice.status === 'paid' || invoice.status === 'cancelled') {
+      toast.error('Cannot edit an invoice that has been approved, paid, or cancelled');
       return;
     }
+    
     try {
-      // Fetch the complete order with all associations
-      const completeOrder = await purchasingOrderService.getPurchasingOrder(order.id);
-      setSelectedPurchasingOrder(completeOrder);
+      // Fetch the complete invoice with all associations
+      const completeInvoice = await purchaseInvoiceService.getPurchaseInvoice(invoice.id);
+      setSelectedPurchaseInvoice(completeInvoice);
       setModalMode('edit');
       setIsModalOpen(true);
     } catch (error) {
-      toast.error('Failed to load purchasing order data');
+      toast.error('Failed to load purchase invoice data');
       // Fallback to basic data if fetch fails
-      setSelectedPurchasingOrder(order);
+      setSelectedPurchaseInvoice(invoice);
       setModalMode('edit');
       setIsModalOpen(true);
     }
   }, []);
 
-  const handleView = useCallback(async (order: PurchasingOrder) => {
+  const handleView = useCallback(async (invoice: PurchaseInvoice) => {
     try {
-      // Fetch the complete order with all associations and items
-      const completeOrder = await purchasingOrderService.getPurchasingOrder(order.id);
-      setSelectedPurchasingOrder(completeOrder);
+      // Fetch the complete invoice with all associations and items
+      const completeInvoice = await purchaseInvoiceService.getPurchaseInvoice(invoice.id);
+      setSelectedPurchaseInvoice(completeInvoice);
       setIsViewModalOpen(true);
     } catch (error) {
-      toast.error('Failed to load purchasing order data');
+      toast.error('Failed to load purchase invoice data');
       // Fallback to basic data if fetch fails
-      setSelectedPurchasingOrder(order);
-      setIsViewModalOpen(true);
+    setSelectedPurchaseInvoice(invoice);
+    setIsViewModalOpen(true);
     }
   }, []);
 
-  const handleConvertToPurchaseInvoice = useCallback(async (order: PurchasingOrder) => {
-    // Validate that order is in a convertible state
-    if (order.status !== 'sent' && order.status !== 'accepted' && order.status !== 'received') {
-      toast.error('Only sent, accepted, or received purchasing orders can be converted to purchase invoices');
-      return;
-    }
-
-    try {
-      toast.loading('Converting purchasing order to purchase invoice...');
-      
-      // Convert to purchase invoice (using today's date as default)
-      const result = await purchasingOrderService.convertToPurchaseInvoice(order.id);
-      
-      toast.dismiss();
-      toast.success(`Purchasing order converted successfully! Purchase Invoice: ${result.purchaseInvoice.invoiceRefNumber}`);
-      
-      // Close the view modal
-      setIsViewModalOpen(false);
-      
-      // Navigate to the purchase invoices page
-      navigate('/purchases/purchase-invoices');
-    } catch (error: any) {
-      toast.dismiss();
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to convert purchasing order to purchase invoice';
-      toast.error(errorMessage);
-    }
-  }, [navigate]);
-
-  const handleDelete = useCallback((order: PurchasingOrder) => {
-    setSelectedPurchasingOrder(order);
+  const handleDelete = useCallback((invoice: PurchaseInvoice) => {
+    setSelectedPurchaseInvoice(invoice);
     setIsDeleteModalOpen(true);
   }, []);
 
-  const handleSend = useCallback((order: PurchasingOrder) => {
-    setSelectedPurchasingOrder(order);
+  const handleSend = useCallback((invoice: PurchaseInvoice) => {
+    setSelectedPurchaseInvoice(invoice);
     setActionType('send');
     setIsActionModalOpen(true);
   }, []);
 
-  const handleAccept = useCallback((order: PurchasingOrder) => {
-    setSelectedPurchasingOrder(order);
-    setActionType('accept');
+  const handleApprove = useCallback((invoice: PurchaseInvoice) => {
+    setSelectedPurchaseInvoice(invoice);
+    setActionType('approve');
     setIsActionModalOpen(true);
   }, []);
 
-  const handleReceive = useCallback((order: PurchasingOrder) => {
-    setSelectedPurchasingOrder(order);
-    setActionType('receive');
-    setIsActionModalOpen(true);
+  const handleReject = useCallback((invoice: PurchaseInvoice) => {
+    // Prevent rejecting approved, paid, or cancelled invoices
+    if (invoice.status === 'approved' || invoice.status === 'paid' || invoice.status === 'cancelled') {
+      toast.error('Cannot reject an invoice that has been approved, paid, or cancelled');
+      return;
+    }
+    
+    setSelectedPurchaseInvoice(invoice);
+    setIsRejectModalOpen(true);
   }, []);
 
-  const handleReject = useCallback((order: PurchasingOrder) => {
-    setSelectedPurchasingOrder(order);
-    setIsRejectionModalOpen(true);
+  const handlePayInvoice = useCallback(async (invoice: PurchaseInvoice) => {
+    try {
+      // Fetch the complete invoice with all associations
+      const completeInvoice = await purchaseInvoiceService.getPurchaseInvoice(invoice.id);
+      setSelectedPurchaseInvoice(completeInvoice);
+      setIsPaymentModalOpen(true);
+    } catch (error) {
+      toast.error('Failed to load invoice data');
+      // Fallback to basic data if fetch fails
+      setSelectedPurchaseInvoice(invoice);
+      setIsPaymentModalOpen(true);
+    }
   }, []);
 
-  const handleReopen = useCallback((order: PurchasingOrder) => {
-    setSelectedPurchasingOrder(order);
-    setIsReopenModalOpen(true);
-  }, []);
+  const handleRecordPayment = useCallback(async (paymentData: InvoicePaymentData) => {
+    if (!selectedPurchaseInvoice) return;
+
+    try {
+      setIsRecordingPayment(true);
+      toast.loading('Recording payment...');
+      
+      const updatedInvoice = await purchaseInvoiceService.recordPayment(selectedPurchaseInvoice.id, paymentData);
+      
+      toast.dismiss();
+      toast.success('Payment recorded successfully');
+      
+      setIsPaymentModalOpen(false);
+      setSelectedPurchaseInvoice(null);
+      
+      // Refresh the invoice list
+      await refetchPurchaseInvoices();
+    } catch (error: any) {
+      toast.dismiss();
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to record payment';
+      toast.error(errorMessage);
+      throw error;
+    } finally {
+      setIsRecordingPayment(false);
+    }
+  }, [selectedPurchaseInvoice, refetchPurchaseInvoices]);
 
   const handleModalClose = () => {
     setIsModalOpen(false);
-    setSelectedPurchasingOrder(null);
+    setSelectedPurchaseInvoice(null);
   };
 
   const handleViewModalClose = () => {
     setIsViewModalOpen(false);
-    setSelectedPurchasingOrder(null);
+    setSelectedPurchaseInvoice(null);
   };
 
   const handleConfirmDelete = async () => {
-    if (selectedPurchasingOrder) {
-      await deletePurchasingOrder(selectedPurchasingOrder.id);
+    if (selectedPurchaseInvoice) {
+      await deletePurchaseInvoice(selectedPurchaseInvoice.id);
       setIsDeleteModalOpen(false);
-      setSelectedPurchasingOrder(null);
+      setSelectedPurchaseInvoice(null);
     }
   };
 
   const handleConfirmAction = async () => {
-    if (selectedPurchasingOrder) {
+    if (selectedPurchaseInvoice) {
       switch (actionType) {
         case 'send':
-          await sendPurchasingOrder(selectedPurchasingOrder.id);
+          await sendPurchaseInvoice(selectedPurchaseInvoice.id);
           break;
-        case 'accept':
-          await acceptPurchasingOrder(selectedPurchasingOrder.id);
-          break;
-        case 'receive':
-          await receivePurchasingOrder(selectedPurchasingOrder.id);
+        case 'approve':
+          await approveInvoice(selectedPurchaseInvoice.id);
           break;
       }
       setIsActionModalOpen(false);
-      setSelectedPurchasingOrder(null);
+      setSelectedPurchaseInvoice(null);
     }
   };
 
-  const handleConfirmRejection = async (rejectionReason: string) => {
-    if (selectedPurchasingOrder) {
-      await rejectPurchasingOrder(selectedPurchasingOrder.id, rejectionReason);
-      setIsRejectionModalOpen(false);
-      setSelectedPurchasingOrder(null);
+  const handleConfirmReject = async (rejectionReason: string) => {
+    if (selectedPurchaseInvoice) {
+      await rejectPurchaseInvoice(selectedPurchaseInvoice.id, rejectionReason);
+      setIsRejectModalOpen(false);
+      setSelectedPurchaseInvoice(null);
     }
   };
 
-  const handleConfirmReopen = async (validUntil: string) => {
-    if (selectedPurchasingOrder) {
-      await reopenPurchasingOrder(selectedPurchasingOrder.id, validUntil);
-      setIsReopenModalOpen(false);
-      setSelectedPurchasingOrder(null);
+  const handleCancel = useCallback((invoice: PurchaseInvoice) => {
+    // Allow canceling overdue, sent, partial_paid, and draft invoices
+    // Do not allow canceling paid, already cancelled, or rejected invoices
+    if (invoice.status === 'paid' || invoice.status === 'cancelled' || invoice.status === 'rejected') {
+      toast.error('Cannot cancel an invoice that has been paid, cancelled, or rejected');
+      return;
+    }
+    
+    setSelectedPurchaseInvoice(invoice);
+    setIsCancelModalOpen(true);
+  }, []);
+
+  const handleConfirmCancel = async (cancellationReason: string) => {
+    if (selectedPurchaseInvoice) {
+      await cancelPurchaseInvoice(selectedPurchaseInvoice.id, cancellationReason);
+      setIsCancelModalOpen(false);
+      setSelectedPurchaseInvoice(null);
     }
   };
 
   const handleFormSubmit = async (data: any) => {
     if (modalMode === 'create') {
-      await createPurchasingOrder(data);
-    } else if (selectedPurchasingOrder) {
-      await updatePurchasingOrder(selectedPurchasingOrder.id, data);
+      await createPurchaseInvoice(data);
+    } else if (selectedPurchaseInvoice) {
+      await updatePurchaseInvoice(selectedPurchaseInvoice.id, data);
     }
     setIsModalOpen(false);
-    setSelectedPurchasingOrder(null);
+    setSelectedPurchaseInvoice(null);
   };
 
-  const getStatusActions = useCallback((order: PurchasingOrder) => {
+
+  const getStatusActions = useCallback((invoice: PurchaseInvoice) => {
     return (
       <div className="flex items-center space-x-2">
         <button
-          onClick={() => handleView(order)}
+          onClick={() => handleView(invoice)}
           className="text-blue-600 hover:text-blue-800 transition-colors"
           title="View Details"
         >
           <Eye className="h-4 w-4" />
         </button>
-        {canEdit && order.status === 'draft' && (
+        {canEdit && invoice.status === 'draft' && (
           <button
-            onClick={() => handleEdit(order)}
+            onClick={() => handleEdit(invoice)}
             className="text-amber-600 hover:text-amber-800 transition-colors"
-            title="Edit Order"
+            title="Edit Invoice"
           >
             <Edit className="h-4 w-4" />
           </button>
         )}
-        {canSend && order.status === 'draft' && (
+        {canSend && invoice.status === 'draft' && (
           <button
-            onClick={() => handleSend(order)}
+            onClick={() => handleSend(invoice)}
             className="text-blue-600 hover:text-blue-800 transition-colors"
-            title="Send Order"
+            title="Send Invoice"
           >
             <Send className="h-4 w-4" />
           </button>
         )}
-        {canAccept && order.status === 'sent' && (
+        {canApprove && invoice.status === 'sent' && (
           <button
-            onClick={() => handleAccept(order)}
+            onClick={() => handleApprove(invoice)}
             className="text-green-600 hover:text-green-800 transition-colors"
-            title="Accept Order"
+            title="Approve Invoice"
           >
             <CheckCircle className="h-4 w-4" />
           </button>
         )}
-        {canReceive && order.status === 'accepted' && (
+        {canReject && invoice.status === 'sent' && (
           <button
-            onClick={() => handleReceive(order)}
-            className="text-purple-600 hover:text-purple-800 transition-colors"
-            title="Receive Order"
-          >
-            <Package className="h-4 w-4" />
-          </button>
-        )}
-        {canReject && order.status === 'sent' && (
-          <button
-            onClick={() => handleReject(order)}
+            onClick={() => handleReject(invoice)}
             className="text-red-600 hover:text-red-800 transition-colors"
-            title="Reject Order"
+            title="Reject Invoice"
           >
             <XCircle className="h-4 w-4" />
           </button>
         )}
-        {canEdit && order.status === 'expired' && (
+        {canCancel && 
+         invoice.status !== 'paid' && 
+         invoice.status !== 'cancelled' && 
+         invoice.status !== 'rejected' &&
+         invoice.paymentStatus !== 'paid' &&
+         (invoice.status === 'overdue' || invoice.status === 'sent' || invoice.status === 'partial_paid' || invoice.status === 'draft') && (
           <button
-            onClick={() => handleReopen(order)}
-            className="text-blue-600 hover:text-blue-800 transition-colors"
-            title="Reopen Order"
+            onClick={() => handleCancel(invoice)}
+            className="text-orange-600 hover:text-orange-800 transition-colors"
+            title="Cancel Invoice"
           >
-            <RefreshCw className="h-4 w-4" />
+            <X className="h-4 w-4" />
           </button>
         )}
-        {canDelete && order.status === 'draft' && (
+        {((invoice.status === 'approved' || invoice.status === 'partial_paid' || invoice.status === 'overdue') && 
+          invoice.paymentStatus !== 'paid' && 
+          (invoice.balanceAmount || 0) > 0) && (
           <button
-            onClick={() => handleDelete(order)}
+            onClick={() => handlePayInvoice(invoice)}
+            className="text-green-600 hover:text-green-800 transition-colors"
+            title="Record Payment"
+          >
+            <CreditCard className="h-4 w-4" />
+          </button>
+        )}
+        {canDelete && invoice.status === 'draft' && (
+          <button
+            onClick={() => handleDelete(invoice)}
             className="text-red-600 hover:text-red-800 transition-colors"
-            title="Delete Order"
+            title="Delete Invoice"
           >
             <Trash2 className="h-4 w-4" />
           </button>
         )}
       </div>
     );
-  }, [canEdit, canSend, canAccept, canReject, canReceive, canDelete, handleEdit, handleSend, handleAccept, handleReceive, handleReject, handleReopen, handleView, handleDelete]);
+  }, [canEdit, canSend, canApprove, canReject, canDelete, canCancel, handleEdit, handleSend, handleApprove, handleReject, handleView, handleDelete, handlePayInvoice, handleCancel]);
 
   const columns = useMemo(() => [
     {
-      key: 'purchasingOrderRefNumber',
+      key: 'invoiceRefNumber',
       header: 'Reference Number',
       sortable: true,
-      render: (order: PurchasingOrder) => (
-        <span className="reference-number">{order.purchasingOrderRefNumber}</span>
+      render: (invoice: PurchaseInvoice) => (
+        <span className="reference-number">{invoice.invoiceRefNumber}</span>
       ),
       defaultVisible: true
     },
     {
-      key: 'purchasingOrderDate',
-      header: 'Date',
+      key: 'invoiceDate',
+      header: 'Invoice Date',
       sortable: true,
-      render: (order: PurchasingOrder) => (
-        <span className="reference-date">{formatDate(order.purchasingOrderDate)}</span>
+      render: (invoice: PurchaseInvoice) => (
+        <span className="reference-date">{formatDate(invoice.invoiceDate)}</span>
       ),
       defaultVisible: true
     },
@@ -353,8 +383,8 @@ const PurchasingOrders: React.FC = () => {
       key: 'vendorName',
       header: 'Vendor Name',
       sortable: true,
-      render: (order: PurchasingOrder) => (
-        <span className="vendor-name">{order.vendorName || 'N/A'}</span>
+      render: (invoice: PurchaseInvoice) => (
+        <span className="vendor-name">{invoice.vendorName || 'N/A'}</span>
       ),
       defaultVisible: true
     },
@@ -362,8 +392,8 @@ const PurchasingOrders: React.FC = () => {
       key: 'vendorCode',
       header: 'Vendor Code',
       sortable: true,
-      render: (order: PurchasingOrder) => (
-        <span className="vendor-code">{order.vendorCode || 'N/A'}</span>
+      render: (invoice: PurchaseInvoice) => (
+        <span className="vendor-code">{invoice.vendorCode || 'N/A'}</span>
       ),
       defaultVisible: true
     },
@@ -371,8 +401,8 @@ const PurchasingOrders: React.FC = () => {
       key: 'storeName',
       header: 'Store',
       sortable: true,
-      render: (order: PurchasingOrder) => (
-        <span className="store-name">{order.storeName}</span>
+      render: (invoice: PurchaseInvoice) => (
+        <span className="store-name">{invoice.storeName}</span>
       ),
       defaultVisible: true
     },
@@ -380,13 +410,33 @@ const PurchasingOrders: React.FC = () => {
       key: 'status',
       header: 'Status',
       sortable: true,
-      render: (order: PurchasingOrder) => {
+      render: (invoice: PurchaseInvoice) => {
         return (
           <StatusBadge
-            status={order.status}
-            variant={order.status === 'accepted' ? 'success' : 
-                    order.status === 'rejected' ? 'error' : 
-                    order.status === 'sent' ? 'info' : 'default'}
+            status={invoice.status}
+            variant={invoice.status === 'paid' ? 'success' : 
+                    invoice.status === 'cancelled' || invoice.status === 'rejected' ? 'error' : 
+                    invoice.status === 'overdue' ? 'error' :
+                    invoice.status === 'partial_paid' ? 'warning' :
+                    invoice.status === 'sent' ? 'info' : 'default'}
+          />
+        );
+      },
+      defaultVisible: true
+    },
+    {
+      key: 'paymentStatus',
+      header: 'Payment Status',
+      sortable: true,
+      render: (invoice: PurchaseInvoice) => {
+        const paymentStatus = invoice.paymentStatus || 'unpaid';
+        return (
+          <StatusBadge
+            status={paymentStatus}
+            variant={paymentStatus === 'paid' ? 'success' : 
+                    paymentStatus === 'overpaid' ? 'warning' :
+                    paymentStatus === 'partial' ? 'warning' : 
+                    'default'}
           />
         );
       },
@@ -396,8 +446,8 @@ const PurchasingOrders: React.FC = () => {
       key: 'currencySymbol',
       header: 'Currency Symbol',
       sortable: false,
-      render: (order: PurchasingOrder) => (
-        <span className="currency-symbol">{order.currencySymbol || 'N/A'}</span>
+      render: (invoice: PurchaseInvoice) => (
+        <span className="currency-symbol">{invoice.currencySymbol || 'N/A'}</span>
       ),
       defaultVisible: true
     },
@@ -405,8 +455,8 @@ const PurchasingOrders: React.FC = () => {
       key: 'currencyName',
       header: 'Currency Name',
       sortable: false,
-      render: (order: PurchasingOrder) => (
-        <span className="currency-name">{order.currencyName || 'N/A'}</span>
+      render: (invoice: PurchaseInvoice) => (
+        <span className="currency-name">{invoice.currencyName || 'N/A'}</span>
       ),
       defaultVisible: true
     },
@@ -414,9 +464,9 @@ const PurchasingOrders: React.FC = () => {
       key: 'exchangeRate',
       header: 'Exchange Rate',
       sortable: false,
-      render: (order: PurchasingOrder) => (
+      render: (invoice: PurchaseInvoice) => (
         <span className="exchange-rate font-mono text-sm">
-          {order.exchangeRateValue ? order.exchangeRateValue.toFixed(4) : '1.0000'}
+          {invoice.exchangeRateValue ? invoice.exchangeRateValue.toFixed(4) : '1.0000'}
         </span>
       ),
       defaultVisible: true
@@ -425,12 +475,13 @@ const PurchasingOrders: React.FC = () => {
       key: 'totalAmount',
       header: 'Total Amount',
       sortable: true,
-      render: (order: PurchasingOrder) => {
-        const currencyCode = order.currency?.code || order.currencyId || 'USD';
-        const currencySymbol = order.currencySymbol || order.currency?.symbol;
+      render: (invoice: PurchaseInvoice) => {
+        // Use the invoice's currency symbol, or fallback to currency code, or default to USD
+        const currencyCode = invoice.currency?.code || invoice.currencyId || 'USD';
+        const currencySymbol = invoice.currencySymbol || invoice.currency?.symbol;
         return (
           <span className="amount-value">
-            {formatCurrency(order.totalAmount, currencyCode, currencySymbol)}
+            {formatCurrency(invoice.totalAmount, currencyCode, currencySymbol)}
           </span>
         );
       },
@@ -440,10 +491,11 @@ const PurchasingOrders: React.FC = () => {
       key: 'equivalentAmount',
       header: 'Equivalent Amount',
       sortable: false,
-      render: (order: PurchasingOrder) => {
-        const systemCurrencyCode = order.systemDefaultCurrency?.code || 'USD';
-        const systemCurrencySymbol = order.systemDefaultCurrency?.symbol;
-        const amount = order.equivalentAmount || order.totalAmount;
+      render: (invoice: PurchaseInvoice) => {
+        // Use the system default currency for equivalent amount (converted amount)
+        const systemCurrencyCode = invoice.systemDefaultCurrency?.code || 'USD';
+        const systemCurrencySymbol = invoice.systemDefaultCurrency?.symbol;
+        const amount = invoice.equivalentAmount || invoice.totalAmount;
         return (
           <span className="equivalent-amount-value">
             {formatCurrency(amount, systemCurrencyCode, systemCurrencySymbol)}
@@ -453,23 +505,12 @@ const PurchasingOrders: React.FC = () => {
       defaultVisible: false
     },
     {
-      key: 'validUntil',
-      header: 'Valid Until',
+      key: 'dueDate',
+      header: 'Due Date',
       sortable: true,
-      render: (order: PurchasingOrder) => (
-        <span className="valid-until">
-          {order.validUntil ? formatDate(order.validUntil) : 'No limit'}
-        </span>
-      ),
-      defaultVisible: false
-    },
-    {
-      key: 'expectedDeliveryDate',
-      header: 'Expected Delivery Date',
-      sortable: true,
-      render: (order: PurchasingOrder) => (
-        <span className="expected-delivery-date">
-          {order.expectedDeliveryDate ? formatDate(order.expectedDeliveryDate) : 'Not set'}
+      render: (invoice: PurchaseInvoice) => (
+        <span className="due-date">
+          {invoice.dueDate ? formatDate(invoice.dueDate) : '-'}
         </span>
       ),
       defaultVisible: false
@@ -478,9 +519,9 @@ const PurchasingOrders: React.FC = () => {
       key: 'createdByName',
       header: 'Created By',
       sortable: true,
-      render: (order: PurchasingOrder) => (
+      render: (invoice: PurchaseInvoice) => (
         <span className="created-by">
-          {order.createdByName || 'System'}
+          {invoice.createdByName || 'System'}
         </span>
       ),
       defaultVisible: true
@@ -489,9 +530,9 @@ const PurchasingOrders: React.FC = () => {
       key: 'createdAt',
       header: 'Created Date & Time',
       sortable: true,
-      render: (order: PurchasingOrder) => (
+      render: (invoice: PurchaseInvoice) => (
         <span className="created-date">
-          {order.createdAt ? formatDateTime(order.createdAt) : '-'}
+          {invoice.createdAt ? formatDateTime(invoice.createdAt) : '-'}
         </span>
       ),
       defaultVisible: true
@@ -500,9 +541,9 @@ const PurchasingOrders: React.FC = () => {
       key: 'updatedByName',
       header: 'Updated By',
       sortable: true,
-      render: (order: PurchasingOrder) => (
+      render: (invoice: PurchaseInvoice) => (
         <span className="updated-by">
-          {order.updatedByName || 'System'}
+          {invoice.updatedByName || 'System'}
         </span>
       ),
       defaultVisible: true
@@ -511,9 +552,9 @@ const PurchasingOrders: React.FC = () => {
       key: 'updatedAt',
       header: 'Updated Date & Time',
       sortable: true,
-      render: (order: PurchasingOrder) => (
+      render: (invoice: PurchaseInvoice) => (
         <span className="updated-date">
-          {order.updatedAt ? formatDateTime(order.updatedAt) : '-'}
+          {invoice.updatedAt ? formatDateTime(invoice.updatedAt) : '-'}
         </span>
       ),
       defaultVisible: true
@@ -522,9 +563,9 @@ const PurchasingOrders: React.FC = () => {
       key: 'sentByName',
       header: 'Sent By',
       sortable: true,
-      render: (order: PurchasingOrder) => (
+      render: (invoice: PurchaseInvoice) => (
         <span className="sent-by">
-          {order.sentByName || '-'}
+          {invoice.sentByName || '-'}
         </span>
       ),
       defaultVisible: false
@@ -533,53 +574,79 @@ const PurchasingOrders: React.FC = () => {
       key: 'sentAt',
       header: 'Sent Date & Time',
       sortable: true,
-      render: (order: PurchasingOrder) => (
+      render: (invoice: PurchaseInvoice) => (
         <span className="sent-date">
-          {order.sentAt ? formatDateTime(order.sentAt) : '-'}
+          {invoice.sentAt ? formatDateTime(invoice.sentAt) : '-'}
         </span>
       ),
       defaultVisible: false
     },
     {
-      key: 'acceptedByName',
-      header: 'Accepted By',
+      key: 'paidAt',
+      header: 'Paid Date',
       sortable: true,
-      render: (order: PurchasingOrder) => (
-        <span className="accepted-by">
-          {order.acceptedByName || '-'}
+      render: (invoice: PurchaseInvoice) => (
+        <span className="paid-date">
+          {invoice.paidAt ? formatDateTime(invoice.paidAt) : '-'}
         </span>
       ),
       defaultVisible: false
     },
     {
-      key: 'acceptedAt',
-      header: 'Accepted Date & Time',
+      key: 'paidAmount',
+      header: 'Paid Amount',
       sortable: true,
-      render: (order: PurchasingOrder) => (
-        <span className="accepted-date">
-          {order.acceptedAt ? formatDateTime(order.acceptedAt) : '-'}
+      render: (invoice: PurchaseInvoice) => (
+        <span className="paid-amount">
+          {invoice.paidAmount !== undefined && invoice.paidAmount !== null ? formatCurrency(invoice.paidAmount, invoice.currencySymbol) : '-'}
         </span>
       ),
       defaultVisible: false
     },
     {
-      key: 'receivedByName',
-      header: 'Received By',
+      key: 'balanceAmount',
+      header: 'Balance',
       sortable: true,
-      render: (order: PurchasingOrder) => (
-        <span className="received-by">
-          {order.receivedByName || '-'}
+      render: (invoice: PurchaseInvoice) => (
+        <span className="balance-amount">
+          {invoice.balanceAmount !== undefined && invoice.balanceAmount !== null ? formatCurrency(invoice.balanceAmount, invoice.currencySymbol) : '-'}
         </span>
       ),
       defaultVisible: false
     },
     {
-      key: 'receivedAt',
-      header: 'Received Date & Time',
+      key: 'cancelledByName',
+      header: 'Cancelled By',
       sortable: true,
-      render: (order: PurchasingOrder) => (
-        <span className="received-date">
-          {order.receivedAt ? formatDateTime(order.receivedAt) : '-'}
+      render: (invoice: PurchaseInvoice) => (
+        <span className="cancelled-by">
+          {invoice.cancelledByName || '-'}
+        </span>
+      ),
+      defaultVisible: false
+    },
+    {
+      key: 'cancelledAt',
+      header: 'Cancelled Date & Time',
+      sortable: true,
+      render: (invoice: PurchaseInvoice) => (
+        <span className="cancelled-date">
+          {invoice.cancelledAt ? formatDateTime(invoice.cancelledAt) : '-'}
+        </span>
+      ),
+      defaultVisible: false
+    },
+    {
+      key: 'cancellationReason',
+      header: 'Cancellation Reason',
+      sortable: false,
+      render: (invoice: PurchaseInvoice) => (
+        <span className="cancellation-reason" title={invoice.cancellationReason || ''}>
+          {invoice.cancellationReason ? (
+            <span className="text-sm text-gray-700 max-w-xs truncate block">
+              {invoice.cancellationReason}
+            </span>
+          ) : '-'}
         </span>
       ),
       defaultVisible: false
@@ -588,9 +655,9 @@ const PurchasingOrders: React.FC = () => {
       key: 'rejectedByName',
       header: 'Rejected By',
       sortable: true,
-      render: (order: PurchasingOrder) => (
+      render: (invoice: PurchaseInvoice) => (
         <span className="rejected-by">
-          {order.rejectedByName || '-'}
+          {invoice.rejectedByName || '-'}
         </span>
       ),
       defaultVisible: false
@@ -599,9 +666,9 @@ const PurchasingOrders: React.FC = () => {
       key: 'rejectedAt',
       header: 'Rejected Date & Time',
       sortable: true,
-      render: (order: PurchasingOrder) => (
+      render: (invoice: PurchaseInvoice) => (
         <span className="rejected-date">
-          {order.rejectedAt ? formatDateTime(order.rejectedAt) : '-'}
+          {invoice.rejectedAt ? formatDateTime(invoice.rejectedAt) : '-'}
         </span>
       ),
       defaultVisible: false
@@ -610,11 +677,11 @@ const PurchasingOrders: React.FC = () => {
       key: 'rejectionReason',
       header: 'Rejection Reason',
       sortable: false,
-      render: (order: PurchasingOrder) => (
-        <span className="rejection-reason" title={order.rejectionReason || ''}>
-          {order.rejectionReason ? (
+      render: (invoice: PurchaseInvoice) => (
+        <span className="rejection-reason" title={invoice.rejectionReason || ''}>
+          {invoice.rejectionReason ? (
             <span className="text-sm text-gray-700 max-w-xs truncate block">
-              {order.rejectionReason}
+              {invoice.rejectionReason}
             </span>
           ) : '-'}
         </span>
@@ -624,7 +691,7 @@ const PurchasingOrders: React.FC = () => {
     {
       key: 'actions',
       header: 'Actions',
-      render: (order: PurchasingOrder) => getStatusActions(order),
+      render: (invoice: PurchaseInvoice) => getStatusActions(invoice),
       defaultVisible: true
     }
   ], [getStatusActions]);
@@ -633,7 +700,7 @@ const PurchasingOrders: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-red-500 text-xl mb-4">Error loading purchasing orders</div>
+          <div className="text-red-500 text-xl mb-4">Error loading purchase invoices</div>
           <div className="text-gray-600">{error.message}</div>
         </div>
       </div>
@@ -651,7 +718,7 @@ const PurchasingOrders: React.FC = () => {
                 <FileText className="h-6 w-6 text-blue-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Orders</p>
+                <p className="text-sm font-medium text-gray-600">Total Invoices</p>
                 <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
               </div>
             </div>
@@ -687,8 +754,8 @@ const PurchasingOrders: React.FC = () => {
                 <CheckCircle className="h-6 w-6 text-green-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Accepted</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.accepted}</p>
+                <p className="text-sm font-medium text-gray-600">Paid</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.paid}</p>
               </div>
             </div>
           </Card>
@@ -734,6 +801,21 @@ const PurchasingOrders: React.FC = () => {
           
           {/* Filters */}
           <div className="mt-4 flex flex-wrap items-center gap-4">
+            <div className="flex items-center space-x-2">
+              <DollarSign className="h-4 w-4 text-gray-400" />
+              <select
+                value={filters.paymentStatus || ''}
+                onChange={(e) => handleFilter({ paymentStatus: e.target.value as 'unpaid' | 'partial' | 'paid' | 'overpaid' || undefined })}
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-150 hover:border-gray-400"
+              >
+                <option value="">All Payment Status</option>
+                <option value="unpaid">Unpaid</option>
+                <option value="partial">Partial</option>
+                <option value="paid">Paid</option>
+                <option value="overpaid">Overpaid</option>
+              </select>
+            </div>
+
             <div className="flex items-center space-x-2">
               <Store className="h-4 w-4 text-gray-400" />
               <select
@@ -796,6 +878,13 @@ const PurchasingOrders: React.FC = () => {
                 <ArrowLeft size={16} className="mr-2" />
                 Back to Purchases
               </button>
+              <button
+                onClick={() => navigate('/purchases/payments')}
+                className="inline-flex items-center px-4 py-2 border border-green-300 text-sm font-medium rounded-lg text-green-700 bg-white hover:bg-green-50 hover:border-green-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-100 transform hover:scale-105"
+              >
+                <Receipt size={16} className="mr-2" />
+                View Payments
+              </button>
             </div>
             <div className="flex items-center space-x-3">
               {canExport && (
@@ -826,6 +915,7 @@ const PurchasingOrders: React.FC = () => {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
           <div className="border-b border-gray-200">
             <nav className="flex space-x-8 px-6 overflow-x-auto">
+              {/* Status Tabs */}
               <button
                 onClick={() => handleTabChange('all')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
@@ -866,16 +956,68 @@ const PurchasingOrders: React.FC = () => {
                 </div>
               </button>
               <button
-                onClick={() => handleTabChange('accepted')}
+                onClick={() => handleTabChange('approved')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
-                  activeTab === 'accepted'
+                  activeTab === 'approved'
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
                 <div className="flex items-center space-x-2">
                   <CheckCircle className="w-4 h-4" />
-                  <span>Accepted</span>
+                  <span>Approved</span>
+                </div>
+              </button>
+              <button
+                onClick={() => handleTabChange('paid')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
+                  activeTab === 'paid'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-center space-x-2">
+                  <CheckCircle className="w-4 h-4" />
+                  <span>Paid</span>
+                </div>
+              </button>
+              <button
+                onClick={() => handleTabChange('partial_paid')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
+                  activeTab === 'partial_paid'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-center space-x-2">
+                  <Clock className="w-4 h-4" />
+                  <span>Partial Paid</span>
+                </div>
+              </button>
+              <button
+                onClick={() => handleTabChange('overdue')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
+                  activeTab === 'overdue'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-center space-x-2">
+                  <XCircle className="w-4 h-4" />
+                  <span>Overdue</span>
+                </div>
+              </button>
+              <button
+                onClick={() => handleTabChange('cancelled')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
+                  activeTab === 'cancelled'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-center space-x-2">
+                  <XCircle className="w-4 h-4" />
+                  <span>Cancelled</span>
                 </div>
               </button>
               <button
@@ -891,121 +1033,89 @@ const PurchasingOrders: React.FC = () => {
                   <span>Rejected</span>
                 </div>
               </button>
-              <button
-                onClick={() => handleTabChange('expired')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
-                  activeTab === 'expired'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <div className="flex items-center space-x-2">
-                  <Clock className="w-4 h-4" />
-                  <span>Expired</span>
-                </div>
-              </button>
-              <button
-                onClick={() => handleTabChange('received')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
-                  activeTab === 'received'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <div className="flex items-center space-x-2">
-                  <Package className="w-4 h-4" />
-                  <span>Received</span>
-                </div>
-              </button>
-              <button
-                onClick={() => handleTabChange('converted')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
-                  activeTab === 'converted'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <div className="flex items-center space-x-2">
-                  <Receipt className="w-4 h-4" />
-                  <span>Converted to Purchase Invoice</span>
-                </div>
-              </button>
             </nav>
           </div>
         </div>
 
-        {/* Purchasing Orders Table Container */}
+        {/* Purchase Invoices Table Container */}
         <div className="bg-white shadow-sm rounded-lg overflow-hidden border border-gray-200 animate-slideInUp hover:shadow-lg transition-all duration-150">
           {isLoading ? (
             <div className="flex items-center justify-center py-12 animate-pulse">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <span className="ml-2 text-gray-600">Loading purchasing orders...</span>
+              <span className="ml-2 text-gray-600">Loading purchase invoices...</span>
             </div>
           ) : (
             <>
               <DataTable
-                data={purchasingOrders}
+                data={purchaseInvoices}
                 columns={columns}
-                emptyMessage="No purchasing orders found matching your criteria."
+                emptyMessage="No purchase invoices found matching your criteria."
                 showColumnControls={true}
                 maxHeight={600}
                 onSort={(key, direction) => {
                   // Map column keys to sortConfig field names
-                  const sortFieldMap: Record<string, PurchasingOrderSortConfig['field']> = {
-                    'purchasingOrderRefNumber': 'purchasingOrderRefNumber',
-                    'purchasingOrderDate': 'purchasingOrderDate',
+                  const sortFieldMap: Record<string, PurchaseInvoiceSortConfig['field']> = {
+                    'invoiceRefNumber': 'invoiceRefNumber',
+                    'invoiceDate': 'invoiceDate',
                     'vendorName': 'vendorName',
                     'vendorCode': 'vendorName', // Map to vendorName since vendorCode is not sortable
                     'storeName': 'storeName',
                     'status': 'status',
                     'totalAmount': 'totalAmount',
-                    'validUntil': 'validUntil',
-                    'expectedDeliveryDate': 'expectedDeliveryDate',
+                    'dueDate': 'dueDate',
+                    'paidAmount': 'paidAmount',
+                    'balanceAmount': 'balanceAmount',
                     'createdByName': 'createdBy',
                     'createdAt': 'createdAt',
                     'updatedByName': 'updatedBy',
                     'updatedAt': 'updatedAt',
                     'sentByName': 'sentByName',
                     'sentAt': 'sentAt',
-                    'acceptedByName': 'acceptedByName',
-                    'acceptedAt': 'acceptedAt',
-                    'receivedByName': 'receivedByName',
-                    'receivedAt': 'receivedAt',
+                    'paidAt': 'paidAt',
+                    'cancelledByName': 'cancelledByName',
+                    'cancelledAt': 'cancelledAt',
                     'rejectedByName': 'rejectedByName',
                     'rejectedAt': 'rejectedAt'
                   };
-                  const sortField = sortFieldMap[key] || key as PurchasingOrderSortConfig['field'];
+                  const sortField = sortFieldMap[key] || key as PurchaseInvoiceSortConfig['field'];
                   handleSort(sortField, direction);
                 }}
                 sortable={true}
                 initialSortState={{
                   // Map sortConfig field back to column key for display
                   key: (() => {
-                    const reverseMap: Record<PurchasingOrderSortConfig['field'], string> = {
-                      'purchasingOrderRefNumber': 'purchasingOrderRefNumber',
-                      'purchasingOrderDate': 'purchasingOrderDate',
+                    const reverseMap: Record<PurchaseInvoiceSortConfig['field'], string> = {
+                      'invoiceRefNumber': 'invoiceRefNumber',
+                      'invoiceDate': 'invoiceDate',
                       'vendorName': 'vendorName',
                       'storeName': 'storeName',
                       'status': 'status',
                       'totalAmount': 'totalAmount',
-                      'validUntil': 'validUntil',
-                      'expectedDeliveryDate': 'expectedDeliveryDate',
+                      'dueDate': 'dueDate',
+                      'paidAmount': 'paidAmount',
+                      'balanceAmount': 'balanceAmount',
                       'createdAt': 'createdAt',
                       'updatedAt': 'updatedAt',
                       'createdBy': 'createdByName',
                       'updatedBy': 'updatedByName',
                       'sentAt': 'sentAt',
                       'sentByName': 'sentByName',
-                      'acceptedAt': 'acceptedAt',
-                      'acceptedByName': 'acceptedByName',
-                      'receivedAt': 'receivedAt',
-                      'receivedByName': 'receivedByName',
+                      'paidAt': 'paidAt',
+                      'cancelledAt': 'cancelledAt',
+                      'cancelledByName': 'cancelledByName',
                       'rejectedAt': 'rejectedAt',
                       'rejectedByName': 'rejectedByName'
                     };
                     return reverseMap[sortConfig.field] || sortConfig.field;
                   })(),
                   direction: sortConfig.direction
+                }}
+                getRowClassName={(invoice: PurchaseInvoice) => {
+                  // Add visual indicator (shading) only for auto-generated invoices
+                  if (invoice.parentInvoiceId) {
+                    return 'bg-blue-50 border-l-4 border-blue-400'; // Auto-generated from scheduled invoice
+                  }
+                  return '';
                 }}
               />
 
@@ -1074,11 +1184,11 @@ const PurchasingOrders: React.FC = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={handleModalClose}
-        title={`${modalMode === 'create' ? 'Create' : 'Edit'} Purchasing Order`}
+        title={`${modalMode === 'create' ? 'Create' : 'Edit'} Purchase Invoice`}
         size="almost-full"
       >
-        <PurchasingOrderForm
-          purchasingOrder={selectedPurchasingOrder}
+        <PurchaseInvoiceForm
+          purchaseInvoice={selectedPurchaseInvoice}
           onSubmit={handleFormSubmit}
           onCancel={handleModalClose}
           isLoading={isCreating || isUpdating}
@@ -1089,25 +1199,19 @@ const PurchasingOrders: React.FC = () => {
       <Modal
         isOpen={isViewModalOpen}
         onClose={handleViewModalClose}
-        title="Purchasing Order Details"
+        title="Purchase Invoice Details"
         size="xl"
       >
-        {selectedPurchasingOrder && (
-          <PurchasingOrderView
-            purchasingOrder={selectedPurchasingOrder}
+        {selectedPurchaseInvoice && (
+          <PurchaseInvoiceView
+            purchaseInvoice={selectedPurchaseInvoice}
             onEdit={
-              selectedPurchasingOrder && selectedPurchasingOrder.status === 'draft'
+              canEdit && selectedPurchaseInvoice.status !== 'approved' && 
+              selectedPurchaseInvoice.status !== 'paid' && 
+              selectedPurchaseInvoice.status !== 'cancelled'
                 ? () => {
               setIsViewModalOpen(false);
-              handleEdit(selectedPurchasingOrder);
-                  }
-                : undefined
-            }
-            onConvertToPurchaseInvoice={
-              selectedPurchasingOrder && (selectedPurchasingOrder.status === 'sent' || selectedPurchasingOrder.status === 'accepted' || selectedPurchasingOrder.status === 'received')
-                ? () => {
-                    setIsViewModalOpen(false);
-                    handleConvertToPurchaseInvoice(selectedPurchasingOrder);
+              handleEdit(selectedPurchaseInvoice);
                   }
                 : undefined
             }
@@ -1120,57 +1224,81 @@ const PurchasingOrders: React.FC = () => {
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={handleConfirmDelete}
-        title="Delete Purchasing Order"
-        message={`Are you sure you want to delete "${selectedPurchasingOrder?.purchasingOrderRefNumber}"? This action cannot be undone.`}
+        title="Delete Purchase Invoice"
+        message={`Are you sure you want to delete "${selectedPurchaseInvoice?.invoiceRefNumber}"? This action cannot be undone.`}
         confirmText="Delete"
         cancelText="Cancel"
         variant="danger"
         isLoading={isDeleting}
       />
 
-      {/* Action Confirmation Modal (for send/accept/receive) */}
+      {/* Action Confirmation Modal (for send/accept) */}
       <ConfirmDialog
         isOpen={isActionModalOpen}
         onClose={() => setIsActionModalOpen(false)}
         onConfirm={handleConfirmAction}
-        title={`${actionType === 'send' ? 'Send' : actionType === 'accept' ? 'Accept' : 'Receive'} Purchasing Order`}
-        message={`Are you sure you want to ${actionType} "${selectedPurchasingOrder?.purchasingOrderRefNumber}"?`}
-        confirmText={actionType === 'send' ? 'Send' : actionType === 'accept' ? 'Accept' : 'Receive'}
+        title={`${actionType === 'send' ? 'Send' : 'Approve'} Purchase Invoice`}
+        message={`Are you sure you want to ${actionType === 'send' ? 'send' : 'approve'} "${selectedPurchaseInvoice?.invoiceRefNumber}"?`}
+        confirmText={actionType === 'send' ? 'Send' : 'Approve'}
         cancelText="Cancel"
         variant="info"
-        isLoading={isSending || isAccepting || isReceiving}
+        isLoading={isSending || isApproving}
       />
 
-      {/* Rejection Modal */}
-      <PurchasingOrderRejectionModal
-        isOpen={isRejectionModalOpen}
+      {/* Reject Modal */}
+      <PurchaseInvoiceRejectModal
+        isOpen={isRejectModalOpen}
         onClose={() => {
-          setIsRejectionModalOpen(false);
-          setSelectedPurchasingOrder(null);
+          setIsRejectModalOpen(false);
+          setSelectedPurchaseInvoice(null);
         }}
-        purchasingOrder={selectedPurchasingOrder}
-        onConfirm={handleConfirmRejection}
+        onConfirm={handleConfirmReject}
         isLoading={isRejecting}
+        purchaseInvoice={selectedPurchaseInvoice}
       />
 
-      {/* Reopen Modal */}
-      <PurchasingOrderReopenModal
-        isOpen={isReopenModalOpen}
+      {/* Cancel Modal */}
+      <PurchaseInvoiceCancelModal
+        isOpen={isCancelModalOpen}
         onClose={() => {
-          setIsReopenModalOpen(false);
-          setSelectedPurchasingOrder(null);
+          setIsCancelModalOpen(false);
+          setSelectedPurchaseInvoice(null);
         }}
-        purchasingOrder={selectedPurchasingOrder}
-        onConfirm={handleConfirmReopen}
-        isLoading={isReopening}
+        onConfirm={handleConfirmCancel}
+        isLoading={isCancelling}
+        purchaseInvoice={selectedPurchaseInvoice}
       />
+
+      {/* Payment Modal */}
+      <Modal
+        isOpen={isPaymentModalOpen}
+        onClose={() => {
+          setIsPaymentModalOpen(false);
+          setSelectedPurchaseInvoice(null);
+        }}
+        title="Pay Invoice"
+        size="xl"
+      >
+        {selectedPurchaseInvoice && (
+          <PurchaseInvoicePaymentForm
+            purchaseInvoice={selectedPurchaseInvoice}
+            onClose={() => {
+              setIsPaymentModalOpen(false);
+              setSelectedPurchaseInvoice(null);
+            }}
+            onSubmit={handleRecordPayment}
+            isLoading={isRecordingPayment}
+            isOpen={isPaymentModalOpen}
+          />
+        )}
+      </Modal>
 
       {/* Floating Action Button (FAB) */}
       {canCreate && (
         <button
           onClick={handleCreate}
           className="fixed bottom-6 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center justify-center transition-all duration-200 hover:scale-110"
-          title="Create Purchasing Order"
+          title="Create Purchase Invoice"
         >
           <Plus className="w-6 h-6" />
         </button>
@@ -1179,4 +1307,4 @@ const PurchasingOrders: React.FC = () => {
   );
 };
 
-export default PurchasingOrders;
+export default PurchaseInvoices;
