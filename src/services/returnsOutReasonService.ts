@@ -155,7 +155,7 @@ export const returnsOutReasonService = {
 
   // Get returns out reason statistics
   getReturnsOutReasonStats: async (): Promise<ReturnReasonStats> => {
-    const response = await api.get('/returns-out-reasons/stats/overview');
+    const response = await api.get('/returns-out-reasons/stats');
     return response.data.stats;
   },
 
