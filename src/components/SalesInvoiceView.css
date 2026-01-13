@@ -425,8 +425,9 @@
     color: #1f2937 !important;
   }
 
-  .edit-btn {
-    display: none;
+  .edit-btn,
+  .no-print {
+    display: none !important;
   }
 
   .view-content {
