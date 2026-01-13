@@ -42,7 +42,7 @@ export class ProfessionalPDFGenerator {
   }
 
   // Load image as data URL for PDF embedding
-  private async loadImageAsDataURL(imagePath: string): Promise<string | null> {
+  public async loadImageAsDataURL(imagePath: string): Promise<string | null> {
     try {
       // Convert relative path to full URL
       const fullUrl = imagePath.startsWith('http') ? imagePath : `${window.location.origin}${imagePath}`;
@@ -1165,4 +1165,1175 @@ export const generateTrialBalancePDF = async (
   await generator.generateTable(allHeaders, tableData, options, 'Trial Balance');
 
   return generator.getBlob();
+};
+
+// Helper function to convert numbers to words
+const numberToWords = (num: number): string => {
+  const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 
+    'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+  const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+  const scales = ['', 'Thousand', 'Million', 'Billion'];
+
+  if (num === 0) return 'Zero';
+
+  const convertHundreds = (n: number): string => {
+    if (n === 0) return '';
+    let result = '';
+    if (n >= 100) {
+      result += ones[Math.floor(n / 100)] + ' Hundred ';
+      n %= 100;
+    }
+    if (n >= 20) {
+      result += tens[Math.floor(n / 10)] + ' ';
+      n %= 10;
+    }
+    if (n > 0) {
+      result += ones[n] + ' ';
+    }
+    return result.trim();
+  };
+
+  let result = '';
+  let scaleIndex = 0;
+  let remaining = Math.floor(num);
+
+  if (remaining === 0) {
+    // Handle case where only decimals exist
+    const decimals = Math.round((num % 1) * 100);
+    if (decimals > 0) {
+      return ones[decimals] + ' Cents';
+    }
+    return 'Zero';
+  }
+
+  while (remaining > 0) {
+    const chunk = remaining % 1000;
+    if (chunk !== 0) {
+      const chunkWords = convertHundreds(chunk);
+      const scaleWord = scales[scaleIndex] && scaleIndex > 0 ? ' ' + scales[scaleIndex] : '';
+      result = chunkWords + scaleWord + (result ? ' ' + result : '');
+    }
+    remaining = Math.floor(remaining / 1000);
+    scaleIndex++;
+  }
+
+  // Handle decimals
+  const decimals = Math.round((num % 1) * 100);
+  if (decimals > 0) {
+    result += ' and ' + decimals + '/100';
+  }
+
+  return result.trim();
+};
+
+// Helper function to generate Sales Invoice PDF
+export const generateSalesInvoicePDF = async (
+  salesInvoice: any
+): Promise<Blob> => {
+  // Create new PDF in portrait mode for invoice
+  const doc = new jsPDF('p', 'mm', 'a4');
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 15;
+
+  // Create a temporary generator instance to use its loadImageAsDataURL method
+  const tempGenerator = new ProfessionalPDFGenerator();
+
+  // Fetch company details from API
+  let companyDetails: CompanyDetails = {
+    name: 'EasyMauzo Company',
+    address: '123 Business Street, City, Country',
+    phone: '+1 (555) 123-4567',
+    email: 'info@easymauzo.com',
+    website: 'www.easymauzo.com'
+  };
+
+  let systemLogoUrl: string | null = null;
+  let companyLogoUrl: string | null = null;
+  let currentFinancialYear: string = 'N/A';
+
+  try {
+    const api = (await import('../services/api')).default;
+    const response = await api.get('/company');
+
+    if (response.data.success && response.data.data) {
+      const company = response.data.data;
+      companyDetails = {
+        name: company.name || 'EasyMauzo Company',
+        address: company.address || '123 Business Street, City, Country',
+        phone: company.phone || '+1 (555) 123-4567',
+        email: company.email || 'info@easymauzo.com',
+        website: company.website || 'www.easymauzo.com',
+        logo: company.logo || undefined,
+        country: company.country || 'Tanzania',
+        region: company.region || 'Dar es Salaam'
+      };
+      // Add TIN and VRN to companyDetails for invoice
+      (companyDetails as any).tin = company.tin;
+      (companyDetails as any).vrn = company.vrn;
+      companyLogoUrl = company.logo || null;
+    }
+
+    // Fetch current financial year
+    try {
+      const financialYearService = (await import('../services/financialYearService')).financialYearService;
+      const financialYear = await financialYearService.getCurrentFinancialYear();
+      if (financialYear) {
+        currentFinancialYear = financialYear.name;
+      }
+    } catch (error) {
+      // Could not fetch financial year, using default
+    }
+  } catch (error) {
+    // Could not fetch company details, using defaults
+  }
+
+  // Try to load system logo (could be a government/system logo)
+  // Try multiple possible paths
+  const systemLogoPaths = [
+    '/images/system-logo.png',
+    '/images/logo.png',
+    '/logo.png',
+    '/system-logo.png'
+  ];
+  
+  for (const path of systemLogoPaths) {
+    try {
+      systemLogoUrl = await tempGenerator.loadImageAsDataURL(path);
+      if (systemLogoUrl) break;
+    } catch (error) {
+      // Continue to next path
+      continue;
+    }
+  }
+
+  // Load company logo - use same method as stock balance PDF (from DOM element)
+  let companyLogoElement: HTMLImageElement | null = null;
+  try {
+    companyLogoElement = document.getElementById('company-logo') as HTMLImageElement;
+    if (companyLogoElement && companyLogoElement.complete && companyLogoElement.naturalHeight !== 0) {
+      // Logo is already loaded, use it directly
+      companyLogoUrl = companyLogoElement.src;
+    } else if (companyLogoUrl) {
+      // Fallback to loading from URL if DOM element not available
+      companyLogoUrl = await tempGenerator.loadImageAsDataURL(companyLogoUrl);
+    } else {
+      companyLogoUrl = null;
+    }
+  } catch (error) {
+    // If DOM method fails, try URL method as fallback
+    if (companyLogoUrl) {
+      try {
+        companyLogoUrl = await tempGenerator.loadImageAsDataURL(companyLogoUrl);
+      } catch (fallbackError) {
+        companyLogoUrl = null;
+      }
+    } else {
+      companyLogoUrl = null;
+    }
+  }
+
+  let currentY = margin;
+
+  // ========== HEADER SECTION ==========
+  // Company Logo (Top Left) - moved from right to left
+  const logoSize = 24; // Increased from 20 to 24 for better visibility
+  const leftLogoX = margin;
+  const leftLogoRight = leftLogoX + logoSize;
+  
+  // Try to get company logo from DOM element first (same as stock balance PDF)
+  const companyLogoImg = document.getElementById('company-logo') as HTMLImageElement;
+  if (companyLogoImg && companyLogoImg.complete && companyLogoImg.naturalHeight !== 0) {
+    // Logo is loaded in DOM, use it directly
+    doc.addImage(companyLogoImg, 'PNG', leftLogoX, currentY, logoSize, logoSize);
+  } else if (companyLogoUrl) {
+    // Fallback to URL if DOM element not available
+    doc.addImage(companyLogoUrl, 'PNG', leftLogoX, currentY, logoSize, logoSize);
+  }
+
+  // Calculate available space for company details (from company logo to right edge)
+  const leftBoundary = (companyLogoImg || companyLogoUrl) ? leftLogoRight + 5 : margin;
+  const rightBoundary = pageWidth - margin;
+  const centerX = pageWidth / 2;
+  const maxTextWidth = rightBoundary - leftBoundary;
+
+  // Company Details (Top Center) - Company Name and Address only
+  // Company Name
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
+  const companyName = companyDetails.name || 'Company Name';
+  const companyNameWidth = doc.getTextWidth(companyName);
+  
+  // Check if company name fits, if not reduce font size
+  let nameFontSize = 14;
+  if (companyNameWidth > maxTextWidth) {
+    nameFontSize = Math.max(10, (maxTextWidth / companyNameWidth) * 14);
+    doc.setFontSize(nameFontSize);
+  }
+  
+  doc.text(companyName, centerX, currentY + 5, { align: 'center', maxWidth: maxTextWidth });
+
+  // Address - handle dynamic formats (comma-separated, newline-separated, or single line)
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(60, 60, 60);
+  
+  let addressY = currentY + 10;
+  
+  // Process address - handle different formats dynamically
+  let addressLines: string[] = [];
+  
+  if (companyDetails.address) {
+    // Check if address contains newlines
+    if (companyDetails.address.includes('\n')) {
+      // Split by newlines
+      addressLines = companyDetails.address.split('\n').map(s => s.trim()).filter(s => s);
+    } else if (companyDetails.address.includes(',')) {
+      // Split by commas
+      addressLines = companyDetails.address.split(',').map(s => s.trim()).filter(s => s);
+    } else {
+      // Single line address
+      addressLines = [companyDetails.address.trim()].filter(s => s);
+    }
+  }
+  
+  // Display address lines with proper wrapping
+  let lineOffset = 0;
+  addressLines.forEach((line, index) => {
+    if (line) {
+      const lineWidth = doc.getTextWidth(line);
+      if (lineWidth > maxTextWidth) {
+        // Wrap long lines by splitting into words
+        const words = line.split(' ');
+        let currentLine = '';
+        let wordOffset = 0;
+        
+        words.forEach((word: string) => {
+          const testLine = currentLine ? `${currentLine} ${word}` : word;
+          const testWidth = doc.getTextWidth(testLine);
+          
+          if (testWidth > maxTextWidth && currentLine) {
+            // Current line is full, print it and start new line
+            doc.text(currentLine, centerX, addressY + (lineOffset * 4), { align: 'center', maxWidth: maxTextWidth });
+            currentLine = word;
+            lineOffset++;
+            wordOffset++;
+          } else {
+            currentLine = testLine;
+          }
+        });
+        
+        // Print remaining line
+        if (currentLine) {
+          doc.text(currentLine, centerX, addressY + (lineOffset * 4), { align: 'center', maxWidth: maxTextWidth });
+          lineOffset++;
+        }
+      } else {
+        // Line fits, print directly
+        doc.text(line, centerX, addressY + (lineOffset * 4), { align: 'center', maxWidth: maxTextWidth });
+        lineOffset++;
+      }
+    }
+  });
+
+  // Calculate final Y position based on actual lines displayed
+  const finalAddressY = addressY + (lineOffset > 0 ? (lineOffset - 1) * 4 : 0);
+
+  // TAX INVOICE Title
+  currentY = finalAddressY + 10;
+  doc.setFontSize(18);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
+  doc.text('TAX INVOICE', centerX, currentY, { align: 'center' });
+
+  currentY += 15;
+
+  // ========== CUSTOMER AND ORGANIZATION INFO SECTION ==========
+  const infoSectionY = currentY;
+  
+  // Calculate column positions - Company Details far left, Customer Info far right
+  const leftColumnX = margin;
+  const centerGap = 50; // Gap between columns to prevent overlap
+  const maxLeftColumnWidth = 75; // Fixed width for left column (Company Details)
+  
+  // Customer Details positioned at far right with wider column
+  // Position it as far right as possible - start closer to right edge
+  const customerDetailsWidth = 85; // Width for customer details column
+  // Position starting from right edge minus margin and width
+  // For A4 (210mm): 210 - 15 - 85 = 110mm from left (truly far right)
+  const customerDetailsLeftEdge = pageWidth - margin - customerDetailsWidth;
+  
+  // Ensure minimum column widths
+  const minColumnWidth = 60; // Minimum width to prevent too narrow columns
+  const actualLeftWidth = Math.max(minColumnWidth, maxLeftColumnWidth);
+  const actualRightWidth = customerDetailsWidth; // Use fixed width for right column
+
+  // Company Details (Far Left)
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
+  doc.text('COMPANY DETAILS', leftColumnX, infoSectionY);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(60, 60, 60);
+  let orgY = infoSectionY + 6;
+
+  // Get TIN and VRN from company details
+  const tin = (companyDetails as any).tin || 'N/A';
+  const vrn = (companyDetails as any).vrn || 'N/A';
+  
+  doc.text(`TIN: ${tin}`, leftColumnX, orgY, { maxWidth: actualLeftWidth });
+  orgY += 5;
+  doc.text(`VRN: ${vrn}`, leftColumnX, orgY, { maxWidth: actualLeftWidth });
+  orgY += 5;
+  
+  // Store name with wrapping
+  if (salesInvoice.storeName) {
+    const storeText = `Store: ${salesInvoice.storeName}`;
+    const storeWidth = doc.getTextWidth(storeText);
+    if (storeWidth > actualLeftWidth) {
+      doc.text('Store:', leftColumnX, orgY, { maxWidth: actualLeftWidth });
+      orgY += 4;
+      // Wrap store name if needed
+      const storeWords = salesInvoice.storeName.split(' ');
+      let storeLine = '';
+      storeWords.forEach((word: string) => {
+        const testLine = storeLine ? `${storeLine} ${word}` : word;
+        if (doc.getTextWidth(testLine) > actualLeftWidth && storeLine) {
+          doc.text(storeLine, leftColumnX, orgY, { maxWidth: actualLeftWidth });
+          orgY += 4;
+          storeLine = word;
+        } else {
+          storeLine = testLine;
+        }
+      });
+      if (storeLine) {
+        doc.text(storeLine, leftColumnX, orgY, { maxWidth: actualLeftWidth });
+        orgY += 5;
+      }
+    } else {
+      doc.text(storeText, leftColumnX, orgY, { maxWidth: actualLeftWidth });
+      orgY += 5;
+    }
+  }
+
+  // Customer Information (Far Right) - Left-aligned within right column
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
+  doc.text('CUSTOMER DETAILS', customerDetailsLeftEdge, infoSectionY, { align: 'left' });
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(60, 60, 60);
+  let customerY = infoSectionY + 6;
+  
+  // Customer Name - with proper text wrapping (label and value on same line)
+  const customerName = salesInvoice.customerName || 'N/A';
+  const nameText = `Name: ${customerName}`;
+  const nameLines = doc.splitTextToSize(nameText, actualRightWidth);
+  nameLines.forEach((line: string) => {
+    doc.text(line, customerDetailsLeftEdge, customerY, { align: 'left' });
+    customerY += 4;
+  });
+  customerY += 1; // Extra spacing after name
+  
+  // Customer Address - with proper text wrapping (label and value on same line, handles all dynamic cases)
+  const customerAddress = salesInvoice.customerAddress || 'Not provided';
+  const addressText = `Address: ${customerAddress}`;
+  
+  // Use splitTextToSize to handle all cases: single line, multi-line (with \n), long addresses, etc.
+  // This will automatically wrap text and handle newlines properly
+  const customerAddressLines = doc.splitTextToSize(addressText, actualRightWidth);
+  customerAddressLines.forEach((line: string) => {
+    doc.text(line, customerDetailsLeftEdge, customerY, { align: 'left' });
+    customerY += 4;
+  });
+  customerY += 1; // Extra spacing after address
+  
+  // Phone - with proper text wrapping (label and value on same line)
+  if (salesInvoice.customerPhone) {
+    const phoneText = `Phone: ${salesInvoice.customerPhone}`;
+    const phoneLines = doc.splitTextToSize(phoneText, actualRightWidth);
+    phoneLines.forEach((line: string) => {
+      doc.text(line, customerDetailsLeftEdge, customerY, { align: 'left' });
+      customerY += 4;
+    });
+    customerY += 1; // Extra spacing after phone
+  }
+  
+  // Email - with proper text wrapping (label and value on same line)
+  if (salesInvoice.customerEmail) {
+    const emailText = `Email: ${salesInvoice.customerEmail}`;
+    const emailLines = doc.splitTextToSize(emailText, actualRightWidth);
+    emailLines.forEach((line: string) => {
+      doc.text(line, customerDetailsLeftEdge, customerY, { align: 'left' });
+      customerY += 4;
+    });
+    customerY += 1; // Extra spacing after email
+  }
+
+  // Ensure proper spacing - use the maximum Y position and add extra space to prevent overlap
+  currentY = Math.max(customerY, orgY) + 15;
+
+  // ========== INVOICE DETAILS ==========
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
+  doc.text('INVOICE DETAILS', leftColumnX, currentY);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(60, 60, 60);
+  currentY += 6;
+  
+  // Invoice Number with wrapping
+  const invoiceNo = salesInvoice.invoiceRefNumber || 'N/A';
+  const invoiceNoText = `Invoice No: ${invoiceNo}`;
+  const invoiceNoWidth = doc.getTextWidth(invoiceNoText);
+  if (invoiceNoWidth > maxLeftColumnWidth) {
+    doc.text('Invoice No:', leftColumnX, currentY, { maxWidth: maxLeftColumnWidth });
+    currentY += 4;
+    doc.text(invoiceNo, leftColumnX, currentY, { maxWidth: maxLeftColumnWidth });
+    currentY += 5;
+  } else {
+    doc.text(invoiceNoText, leftColumnX, currentY, { maxWidth: maxLeftColumnWidth });
+    currentY += 5;
+  }
+  
+  // Invoice Date
+  const invoiceDate = salesInvoice.invoiceDate ? new Date(salesInvoice.invoiceDate).toLocaleDateString('en-GB') : 'N/A';
+  doc.text(`Invoice Date: ${invoiceDate}`, leftColumnX, currentY, { maxWidth: maxLeftColumnWidth });
+  currentY += 5;
+  
+  if (salesInvoice.dueDate) {
+    const dueDate = new Date(salesInvoice.dueDate).toLocaleDateString('en-GB');
+    doc.text(`Due Date: ${dueDate}`, leftColumnX, currentY, { maxWidth: maxLeftColumnWidth });
+    currentY += 5;
+  }
+  
+  // Currency
+  const currencyText = `Currency: ${salesInvoice.currencyName || salesInvoice.currencySymbol || 'USD'}`;
+  const currencyWidth = doc.getTextWidth(currencyText);
+  if (currencyWidth > maxLeftColumnWidth) {
+    doc.text('Currency:', leftColumnX, currentY, { maxWidth: maxLeftColumnWidth });
+    currentY += 4;
+    doc.text(salesInvoice.currencyName || salesInvoice.currencySymbol || 'USD', leftColumnX, currentY, { maxWidth: maxLeftColumnWidth });
+    currentY += 5;
+  } else {
+    doc.text(currencyText, leftColumnX, currentY, { maxWidth: maxLeftColumnWidth });
+    currentY += 5;
+  }
+  
+  // Exchange Rate
+  if (salesInvoice.exchangeRateValue) {
+    const exchangeRateText = `Exchange Rate: ${salesInvoice.exchangeRateValue.toFixed(6)}`;
+    const exchangeRateWidth = doc.getTextWidth(exchangeRateText);
+    if (exchangeRateWidth > maxLeftColumnWidth) {
+      doc.text('Exchange Rate:', leftColumnX, currentY, { maxWidth: maxLeftColumnWidth });
+      currentY += 4;
+      doc.text(salesInvoice.exchangeRateValue.toFixed(6), leftColumnX, currentY, { maxWidth: maxLeftColumnWidth });
+      currentY += 5;
+    } else {
+      doc.text(exchangeRateText, leftColumnX, currentY, { maxWidth: maxLeftColumnWidth });
+      currentY += 5;
+    }
+  }
+  
+  // Payment Status
+  if (salesInvoice.paidAmount !== undefined && salesInvoice.paidAmount !== null && salesInvoice.paidAmount > 0) {
+    doc.text(`Paid Amount: ${(salesInvoice.paidAmount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, leftColumnX, currentY, { maxWidth: maxLeftColumnWidth });
+    currentY += 5;
+  }
+  
+  if (salesInvoice.balanceAmount !== undefined && salesInvoice.balanceAmount !== null) {
+    doc.text(`Invoice Amount: ${(salesInvoice.balanceAmount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, leftColumnX, currentY, { maxWidth: maxLeftColumnWidth });
+    currentY += 5;
+  }
+
+  currentY += 5;
+
+  // ========== ITEMS TABLE ==========
+  const tableStartY = currentY;
+  
+  // Check if items have discounts or notes
+  const hasItemDiscounts = salesInvoice.items && salesInvoice.items.some((item: any) => 
+    (item.discountPercentage !== undefined && item.discountPercentage > 0) ||
+    (item.discountAmount !== undefined && item.discountAmount > 0)
+  );
+  const hasItemNotes = salesInvoice.items && salesInvoice.items.some((item: any) => item.notes);
+  
+  // Calculate available width for table
+  const availableWidth = pageWidth - (margin * 2);
+  
+  // Define column configuration matching the view design (no SN column)
+  interface ColumnConfig {
+    header: string;
+    key: string;
+    minWidth: number; // Minimum width in mm
+    preferredPercent: number; // Preferred percentage of available width
+    align: 'left' | 'right' | 'center';
+  }
+  
+  const columnConfigs: ColumnConfig[] = [
+    { header: 'No', key: 'no', minWidth: 10, preferredPercent: 3, align: 'center' },
+    { header: 'Product', key: 'product', minWidth: 45, preferredPercent: 30, align: 'left' },
+    { header: 'Qty', key: 'quantity', minWidth: 18, preferredPercent: 8, align: 'right' },
+    { header: 'Unit Price', key: 'unitPrice', minWidth: 22, preferredPercent: 10, align: 'right' }
+  ];
+  
+  if (hasItemDiscounts) {
+    columnConfigs.push({ header: 'Discount', key: 'discount', minWidth: 18, preferredPercent: 8, align: 'right' });
+  }
+  
+  columnConfigs.push(
+    { header: 'Subtotal', key: 'subtotal', minWidth: 22, preferredPercent: 10, align: 'right' },
+    { header: 'Tax', key: 'tax', minWidth: 20, preferredPercent: 9, align: 'right' },
+    { header: 'Total', key: 'lineTotal', minWidth: 22, preferredPercent: 12, align: 'right' }
+  );
+  
+  if (hasItemNotes) {
+    columnConfigs.push({ header: 'Notes', key: 'notes', minWidth: 25, preferredPercent: 10, align: 'left' });
+  }
+  
+  // Calculate actual column widths dynamically
+  const colWidths: number[] = [];
+  const tableHeaders: string[] = [];
+  
+  // First pass: calculate preferred widths
+  let totalPreferredWidth = 0;
+  columnConfigs.forEach(config => {
+    tableHeaders.push(config.header);
+    const preferredWidth = (availableWidth * config.preferredPercent) / 100;
+    colWidths.push(Math.max(config.minWidth, preferredWidth));
+    totalPreferredWidth += colWidths[colWidths.length - 1];
+  });
+  
+  // Adjust if total exceeds available width
+  if (totalPreferredWidth > availableWidth) {
+    const scale = availableWidth / totalPreferredWidth;
+    colWidths.forEach((width, index) => {
+      colWidths[index] = Math.max(columnConfigs[index].minWidth, width * scale);
+    });
+  } else if (totalPreferredWidth < availableWidth) {
+    // Distribute extra space proportionally to flexible columns (Product and Notes)
+    const extraSpace = availableWidth - totalPreferredWidth;
+    const flexibleColumns = columnConfigs
+      .map((config, index) => ({ config, index }))
+      .filter(({ config }) => config.key === 'product' || config.key === 'notes');
+    
+    if (flexibleColumns.length > 0) {
+      const spacePerColumn = extraSpace / flexibleColumns.length;
+      flexibleColumns.forEach(({ index }) => {
+        colWidths[index] += spacePerColumn;
+      });
+    } else {
+      // If no flexible columns, distribute to Product column (usually the largest)
+      const productIndex = columnConfigs.findIndex(c => c.key === 'product');
+      if (productIndex >= 0) {
+        colWidths[productIndex] += extraSpace;
+      }
+    }
+  }
+  
+  // Final adjustment to ensure total equals available width
+  const finalTotal = colWidths.reduce((sum, w) => sum + w, 0);
+  if (Math.abs(finalTotal - availableWidth) > 0.1) {
+    const adjustment = availableWidth - finalTotal;
+    // Adjust the Product column (usually the largest flexible column)
+    const productIndex = columnConfigs.findIndex(c => c.key === 'product');
+    if (productIndex >= 0) {
+      colWidths[productIndex] += adjustment;
+    } else {
+      // If no product column, distribute proportionally to all columns
+      const adjustmentPerColumn = adjustment / colWidths.length;
+      colWidths.forEach((width, index) => {
+        colWidths[index] = width + adjustmentPerColumn;
+      });
+    }
+  }
+  
+  // Use the actual sum of column widths as table width (not availableWidth) to prevent extra space
+  const tableWidth = colWidths.reduce((sum, w) => sum + w, 0);
+
+  // Draw table header
+  doc.setFillColor(240, 240, 240);
+  doc.rect(margin, tableStartY, tableWidth, 8, 'F');
+  
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
+  
+  let headerX = margin;
+  tableHeaders.forEach((header, index) => {
+    doc.text(header, headerX + 2, tableStartY + 5);
+    headerX += colWidths[index];
+  });
+
+  // Draw header borders (top and bottom)
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.5);
+  // Top border
+  doc.line(margin, tableStartY, margin + tableWidth, tableStartY);
+  // Bottom border
+  doc.line(margin, tableStartY + 8, margin + tableWidth, tableStartY + 8);
+
+  // Table rows
+  let rowY = tableStartY + 8;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(60, 60, 60);
+
+  if (salesInvoice.items && salesInvoice.items.length > 0) {
+    salesInvoice.items.forEach((item: any, index: number) => {
+      const product = item.productName || item.product?.name || 'N/A';
+      
+      // Format quantity - show decimals only if they exist (matching view formatQuantity)
+      let quantity: string;
+      if (typeof item.quantity !== 'number') {
+        quantity = '0';
+      } else if (item.quantity % 1 === 0) {
+        quantity = item.quantity.toString();
+      } else {
+        quantity = (item.quantity || 0).toFixed(3).replace(/\.?0+$/, '');
+      }
+      
+      // Format unit price (matching view formatNumber)
+      const unitPrice = (item.unitPrice || 0).toLocaleString('en-US', { 
+        minimumFractionDigits: 2, 
+        maximumFractionDigits: 2 
+      });
+      
+      // Format discount (matching view renderDiscount)
+      let discount = '-';
+      if (hasItemDiscounts) {
+        if (item.discountPercentage !== undefined && item.discountPercentage > 0) {
+          discount = `${item.discountPercentage.toFixed(2)}%`;
+        } else if (item.discountAmount !== undefined && item.discountAmount > 0) {
+          discount = (item.discountAmount || 0).toLocaleString('en-US', { 
+            minimumFractionDigits: 2, 
+            maximumFractionDigits: 2 
+          });
+        }
+      }
+      
+      // Calculate subtotal (quantity * unitPrice)
+      const subtotal = (item.quantity || 0) * (item.unitPrice || 0);
+      const subtotalFormatted = subtotal.toLocaleString('en-US', { 
+        minimumFractionDigits: 2, 
+        maximumFractionDigits: 2 
+      });
+      
+      // Format tax amount (use taxAmount if available, otherwise calculate from taxPercentage)
+      let taxAmount = 0;
+      if (item.taxAmount !== undefined && item.taxAmount !== null) {
+        taxAmount = item.taxAmount;
+      } else if (item.taxPercentage) {
+        // Calculate tax: apply tax to amount after discount
+        const lineSubtotal = (item.quantity || 0) * (item.unitPrice || 0);
+        let lineDiscount = 0;
+        if (item.discountAmount !== undefined && item.discountAmount > 0) {
+          lineDiscount = item.discountAmount;
+        } else if (item.discountPercentage) {
+          lineDiscount = lineSubtotal * (item.discountPercentage / 100);
+        }
+        const amountAfterDiscount = lineSubtotal - lineDiscount;
+        taxAmount = amountAfterDiscount * (item.taxPercentage / 100);
+      }
+      const taxAmountFormatted = taxAmount.toLocaleString('en-US', { 
+        minimumFractionDigits: 2, 
+        maximumFractionDigits: 2 
+      });
+      
+      // Format line total (matching view formatNumber)
+      const lineTotal = (item.lineTotal || 0).toLocaleString('en-US', { 
+        minimumFractionDigits: 2, 
+        maximumFractionDigits: 2 
+      });
+      
+      const notes = item.notes || '-';
+      const itemNumber = (index + 1).toString(); // Product number (1, 2, 3, etc.)
+
+      // Draw row border (top)
+      doc.setDrawColor(200, 200, 200);
+      doc.setLineWidth(0.2);
+      doc.line(margin, rowY, margin + tableWidth, rowY);
+
+      // Fixed row height - no dynamic wrapping to avoid empty rows
+      const rowHeight = 8;
+      let cellX = margin;
+      
+      // Build cell data array dynamically matching column order
+      const cellData: string[] = [itemNumber, product, quantity, unitPrice];
+      if (hasItemDiscounts) {
+        cellData.push(discount);
+      }
+      cellData.push(subtotalFormatted, taxAmountFormatted, lineTotal);
+      if (hasItemNotes) {
+        cellData.push(notes);
+      }
+      
+      // Render each cell
+      cellData.forEach((cell, colIndex) => {
+        const config = columnConfigs[colIndex];
+        const cellWidth = colWidths[colIndex];
+        const padding = 3;
+        const cellY = rowY + (rowHeight / 2) - 1; // Center vertically in row
+        
+        // Truncate text if too long instead of wrapping to avoid row height issues
+        const maxCellWidth = cellWidth - (padding * 2);
+        let displayText = cell;
+        const textWidth = doc.getTextWidth(cell);
+        
+        // Product name is at index 1 (after No column)
+        if (textWidth > maxCellWidth && config.key === 'product') {
+          // For product name, truncate with ellipsis
+          let truncated = cell;
+          while (doc.getTextWidth(truncated + '...') > maxCellWidth && truncated.length > 0) {
+            truncated = truncated.substring(0, truncated.length - 1);
+          }
+          displayText = truncated.length < cell.length ? truncated + '...' : truncated;
+        } else if (textWidth > maxCellWidth) {
+          // For other columns, just truncate
+          let truncated = cell;
+          while (doc.getTextWidth(truncated) > maxCellWidth && truncated.length > 0) {
+            truncated = truncated.substring(0, truncated.length - 1);
+          }
+          displayText = truncated;
+        }
+        
+        // Render cell text
+        let alignX: number;
+        if (config.align === 'right') {
+          alignX = cellX + cellWidth - padding;
+        } else if (config.align === 'center') {
+          alignX = cellX + (cellWidth / 2);
+        } else {
+          alignX = cellX + padding;
+        }
+        doc.text(displayText, alignX, cellY, { 
+          align: config.align,
+          maxWidth: maxCellWidth 
+        });
+        
+        cellX += colWidths[colIndex];
+      });
+      
+      // Move to next row
+      rowY += rowHeight;
+    });
+  } else {
+    // No items - show message (matching view)
+    // Column count: No(1) + Product(1) + Qty(1) + Unit Price(1) + [Discount(1) if has] + Subtotal(1) + Tax(1) + Total(1) + [Notes(1) if has]
+    const noItemsColSpan = hasItemDiscounts 
+      ? (hasItemNotes ? 9 : 8)  // With discount: 1+1+1+1+1+1+1+1+1 = 9 (with notes) or 8 (without notes)
+      : (hasItemNotes ? 8 : 7);  // Without discount: 1+1+1+1+1+1+1+1 = 8 (with notes) or 7 (without notes)
+    const noItemsWidth = colWidths.reduce((sum, w) => sum + w, 0);
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(8);
+    doc.setTextColor(120, 120, 120);
+    doc.text('No items found for this invoice.', margin + (noItemsWidth / 2), rowY + 4, { align: 'center' });
+    rowY += 8;
+  }
+
+  // Draw bottom border of table
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.5);
+  doc.line(margin, rowY, margin + tableWidth, rowY);
+  
+  // Draw all vertical lines for the entire table
+  let verticalX = margin;
+  colWidths.forEach((width, index) => {
+    verticalX += width;
+    // Draw vertical line for each column (right border of current column)
+    doc.setDrawColor(0, 0, 0);
+    doc.setLineWidth(0.5);
+    doc.line(verticalX, tableStartY, verticalX, rowY);
+  });
+  
+  // Draw left border of Notes column explicitly (make it more visible)
+  if (hasItemNotes) {
+    // Find the Notes column index
+    const notesColumnIndex = columnConfigs.findIndex(c => c.key === 'notes');
+    if (notesColumnIndex >= 0 && notesColumnIndex > 0) {
+      // Calculate the left edge of Notes column (right edge of previous column)
+      let notesLeftEdge = margin;
+      for (let i = 0; i < notesColumnIndex; i++) {
+        notesLeftEdge += colWidths[i];
+      }
+      // Draw left border for Notes column with slightly thicker line for visibility
+      doc.setDrawColor(0, 0, 0);
+      doc.setLineWidth(0.5);
+      doc.line(notesLeftEdge, tableStartY, notesLeftEdge, rowY);
+    }
+  }
+  
+  // Draw left border of table (first column)
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.5);
+  doc.line(margin, tableStartY, margin, rowY);
+
+  currentY = rowY + 8;
+
+  // ========== TOTALS SECTION ==========
+  // Position totals on the right side, aligned with the Line Total column
+  // Calculate safe positioning to avoid overlap with Customer Details
+  const totalsWidth = 80; // Total width for totals section
+  const labelWidth = 50; // Width for labels
+  const numberRightEdge = margin + tableWidth - 2; // Numbers at right edge of table
+  const labelRightEdge = numberRightEdge - 30; // Labels positioned before numbers
+  
+  // Ensure totals section starts after Customer Details (which ends around pageWidth/2)
+  // Position totals to align with table's right edge
+  const safeTotalsX = Math.max(margin + tableWidth - totalsWidth, pageWidth / 2 + 15);
+
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(60, 60, 60);
+
+  const subtotal = salesInvoice.subtotal || 0;
+  const discount = salesInvoice.discountAmount || 0;
+  const tax = salesInvoice.taxAmount || 0;
+  const totalAmount = salesInvoice.totalAmount || 0;
+
+  let totalY = currentY;
+  
+  // Subtotal (matching view)
+  const subtotalLabel = 'Subtotal:';
+  const subtotalValue = subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const maxLabelWidth = labelWidth;
+  const maxValueWidth = 30;
+  
+  doc.text(subtotalLabel, labelRightEdge, totalY, { align: 'right', maxWidth: maxLabelWidth });
+  doc.text(subtotalValue, numberRightEdge, totalY, { align: 'right', maxWidth: maxValueWidth });
+  totalY += 5;
+
+  // Total Discount (matching view) - always show if discount exists
+  if (discount > 0) {
+    const discountLabel = 'Total Discount:';
+    const discountValue = discount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const discountLabelWidth = doc.getTextWidth(discountLabel);
+    
+    if (discountLabelWidth > maxLabelWidth) {
+      // Wrap label if too long
+      doc.text('Total', labelRightEdge, totalY, { align: 'right', maxWidth: maxLabelWidth });
+      totalY += 4;
+      doc.text('Discount:', labelRightEdge, totalY, { align: 'right', maxWidth: maxLabelWidth });
+    } else {
+      doc.text(discountLabel, labelRightEdge, totalY, { align: 'right', maxWidth: maxLabelWidth });
+    }
+    doc.text(`-${discountValue}`, numberRightEdge, totalY, { align: 'right', maxWidth: maxValueWidth });
+    totalY += 5;
+  }
+
+  // Total Tax (matching view) - always show if tax exists
+  if (tax > 0) {
+    const taxLabel = 'Total Tax:';
+    const taxValue = tax.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    
+    doc.text(taxLabel, labelRightEdge, totalY, { align: 'right', maxWidth: maxLabelWidth });
+    doc.text(taxValue, numberRightEdge, totalY, { align: 'right', maxWidth: maxValueWidth });
+    totalY += 5;
+  }
+
+  // Draw separator line before Total Amount (matching view)
+  doc.setDrawColor(200, 200, 200);
+  doc.setLineWidth(0.3);
+  doc.line(labelRightEdge - maxLabelWidth, totalY, numberRightEdge, totalY);
+  totalY += 3;
+
+  // Total Amount (bold, matching view)
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(0, 0, 0);
+  const totalLabel = 'Total Amount:';
+  const totalValue = totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const totalLabelWidth = doc.getTextWidth(totalLabel);
+  
+  if (totalLabelWidth > maxLabelWidth) {
+    // Wrap label if too long
+    doc.text('Total', labelRightEdge, totalY, { align: 'right', maxWidth: maxLabelWidth });
+    totalY += 4;
+    doc.text('Amount:', labelRightEdge, totalY, { align: 'right', maxWidth: maxLabelWidth });
+  } else {
+    doc.text(totalLabel, labelRightEdge, totalY, { align: 'right', maxWidth: maxLabelWidth });
+  }
+  doc.text(totalValue, numberRightEdge, totalY, { align: 'right', maxWidth: maxValueWidth });
+  totalY += 5;
+  
+  // Equivalent Amount (if available, matching view)
+  if (salesInvoice.equivalentAmount) {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(60, 60, 60);
+    const equivLabel = 'Equivalent Amount:';
+    const equivLabelWidth = doc.getTextWidth(equivLabel);
+    
+    if (equivLabelWidth > maxLabelWidth) {
+      // Wrap label if too long
+      doc.text('Equivalent', labelRightEdge, totalY, { align: 'right', maxWidth: maxLabelWidth });
+      totalY += 4;
+      doc.text('Amount:', labelRightEdge, totalY, { align: 'right', maxWidth: maxLabelWidth });
+    } else {
+      doc.text(equivLabel, labelRightEdge, totalY, { align: 'right', maxWidth: maxLabelWidth });
+    }
+    
+    // Try to get system default currency symbol
+    let equivalentCurrency = '';
+    if (salesInvoice.systemDefaultCurrency) {
+      equivalentCurrency = (salesInvoice.systemDefaultCurrency as any).symbol || 
+                           (salesInvoice.systemDefaultCurrency as any).code || '';
+    }
+    const equivValue = `${equivalentCurrency ? equivalentCurrency + ' ' : ''}${salesInvoice.equivalentAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const equivValueWidth = doc.getTextWidth(equivValue);
+    if (equivValueWidth > maxValueWidth) {
+      // Truncate value if too long
+      let truncated = equivValue;
+      while (doc.getTextWidth(truncated) > maxValueWidth && truncated.length > 0) {
+        truncated = truncated.substring(0, truncated.length - 1);
+      }
+      doc.text(truncated, numberRightEdge, totalY, { align: 'right', maxWidth: maxValueWidth });
+    } else {
+      doc.text(equivValue, numberRightEdge, totalY, { align: 'right', maxWidth: maxValueWidth });
+    }
+    totalY += 5;
+  }
+
+  currentY = totalY + 10;
+
+  // ========== INVOICE DESCRIPTION AND TOTAL IN WORDS ==========
+  if (salesInvoice.notes) {
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('Invoice description', margin, currentY);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(60, 60, 60);
+    currentY += 5;
+    
+    // Wrap invoice description text to fit page width
+    const descriptionWidth = pageWidth - (margin * 2);
+    const descriptionLines = doc.splitTextToSize(salesInvoice.notes, descriptionWidth);
+    descriptionLines.forEach((line: string) => {
+      doc.text(line, margin, currentY, { maxWidth: descriptionWidth });
+      currentY += 4;
+    });
+    currentY += 4; // Extra spacing after description
+  }
+
+  // Total in words
+  // Format currency name properly (e.g., "USD" -> "US Dollars", "TZS" -> "Tanzanian Shillings")
+  let currencyName = salesInvoice.currencyName || 'US Dollars';
+  if (salesInvoice.currencySymbol && !salesInvoice.currencyName) {
+    // If we only have symbol, try to infer name
+    const currencyMap: { [key: string]: string } = {
+      '$': 'US Dollars',
+      'USD': 'US Dollars',
+      'TZS': 'Tanzanian Shillings',
+      'TSH': 'Tanzanian Shillings',
+      'EUR': 'Euros',
+      'GBP': 'British Pounds',
+      'KES': 'Kenyan Shillings'
+    };
+    currencyName = currencyMap[salesInvoice.currencySymbol] || currencyMap[salesInvoice.currencySymbol.toUpperCase()] || 'US Dollars';
+  }
+  // Use totalAmount for words conversion (matching view - Total Amount is the final amount)
+  const totalInWords = numberToWords(totalAmount);
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
+  const wordsText = `${totalInWords.charAt(0).toUpperCase() + totalInWords.slice(1)} ${currencyName} Only`;
+  
+  // Wrap amount in words text to fit page width
+  const wordsWidth = pageWidth - (margin * 2);
+  const wordsLines = doc.splitTextToSize(wordsText, wordsWidth);
+  wordsLines.forEach((line: string) => {
+    doc.text(line, centerX, currentY, { align: 'center', maxWidth: wordsWidth });
+    currentY += 4;
+  });
+  currentY += 6; // Extra spacing after words
+
+  // Draw separator line
+  doc.setDrawColor(200, 200, 200);
+  doc.setLineWidth(0.3);
+  doc.line(margin, currentY, pageWidth - margin, currentY);
+  currentY += 8;
+
+  // ========== NOTES ==========
+  if (salesInvoice.termsConditions) {
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('Notes:', margin, currentY);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(60, 60, 60);
+    currentY += 5;
+    
+    // Wrap notes text to fit page width
+    const notesWidth = pageWidth - (margin * 2);
+    const notesTextLines = salesInvoice.termsConditions.split('\n');
+    notesTextLines.forEach((line: string) => {
+      if (line.trim()) {
+        // Wrap each line if it's too long
+        const wrappedLines = doc.splitTextToSize(line.trim(), notesWidth);
+        wrappedLines.forEach((wrappedLine: string) => {
+          doc.text(wrappedLine, margin, currentY, { maxWidth: notesWidth });
+          currentY += 4;
+        });
+      }
+    });
+    currentY += 5;
+  }
+
+  // ========== SIGNATURE SECTION ==========
+  // Dynamically position signature section based on content above
+  // Ensure minimum space from bottom, but adjust if content is long
+  const minSignatureY = pageHeight - 50; // Minimum 50mm from bottom
+  const signatureY = Math.max(currentY + 10, minSignatureY);
+  const signatureColWidth = (pageWidth - (margin * 2) - 20) / 2;
+  const signatureRightX = pageWidth / 2 + 10;
+  const issuingDate = salesInvoice.createdAt ? new Date(salesInvoice.createdAt).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB');
+  
+  // Check if we need a new page (if signature section would be too close to bottom or off page)
+  if (signatureY + 30 > pageHeight - margin) {
+    // Add new page and draw signatures there
+    doc.addPage();
+    const newSignatureY = margin + 20;
+    
+    // Draw Issuing Officer on new page
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('Issuing Officer:', margin, newSignatureY);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(60, 60, 60);
+    let newSigY = newSignatureY + 8;
+    doc.text('Name: ___________________', margin, newSigY);
+    newSigY += 6;
+    doc.text('Signature: ___________________', margin, newSigY);
+    newSigY += 6;
+    doc.text(`Date: ${issuingDate}`, margin, newSigY);
+    
+    // Draw Authorizing Officer on new page
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('Authorizing Officer:', signatureRightX, newSignatureY);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(60, 60, 60);
+    newSigY = newSignatureY + 8;
+    doc.text('Name: ___________________', signatureRightX, newSigY);
+    newSigY += 6;
+    doc.text('Signature: ___________________', signatureRightX, newSigY);
+    newSigY += 6;
+    doc.text(`Date: ${issuingDate}`, signatureRightX, newSigY);
+  } else {
+    // Draw signatures on current page
+    // Issuing Officer (Left)
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('Issuing Officer:', margin, signatureY);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(60, 60, 60);
+    let sigY = signatureY + 8;
+    doc.text('Name: ___________________', margin, sigY);
+    sigY += 6;
+    doc.text('Signature: ___________________', margin, sigY);
+    sigY += 6;
+    doc.text(`Date: ${issuingDate}`, margin, sigY);
+
+    // Authorizing Officer (Right)
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('Authorizing Officer:', signatureRightX, signatureY);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(60, 60, 60);
+    sigY = signatureY + 8;
+    doc.text('Name: ___________________', signatureRightX, sigY);
+    sigY += 6;
+    doc.text('Signature: ___________________', signatureRightX, sigY);
+    sigY += 6;
+    doc.text(`Date: ${issuingDate}`, signatureRightX, sigY);
+  }
+
+  // ========== FOOTER: Powered by TenZen ==========
+  // Add "Powered by TenZen" with logo at bottom right of last page
+  const footerY = pageHeight - 15; // 15mm from bottom
+  const footerRightX = pageWidth - margin;
+  
+  // Try to load TenZen logo
+  const tenzenLogoPaths = [
+    '/images/tenzen-logo.png',
+    '/images/logo.png',
+    '/logo.png',
+    '/tenzen-logo.png'
+  ];
+  
+  let tenzenLogoUrl: string | null = null;
+  for (const path of tenzenLogoPaths) {
+    try {
+      tenzenLogoUrl = await tempGenerator.loadImageAsDataURL(path);
+      if (tenzenLogoUrl) break;
+    } catch (error) {
+      continue;
+    }
+  }
+  
+  // Also try to get from DOM if available
+  const tenzenLogoImg = document.getElementById('tenzen-logo') as HTMLImageElement;
+  if (!tenzenLogoUrl && tenzenLogoImg && tenzenLogoImg.complete && tenzenLogoImg.naturalHeight !== 0) {
+    // Use DOM element directly
+    const footerLogoSize = 12;
+    const footerLogoX = footerRightX - footerLogoSize - 2;
+    const footerTextX = footerLogoX - 5;
+    
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(120, 120, 120);
+    const poweredByText = 'Powered by TenZen';
+    const textWidth = doc.getTextWidth(poweredByText);
+    
+    // Draw text first, then logo
+    doc.text(poweredByText, footerTextX - textWidth, footerY, { align: 'right' });
+    doc.addImage(tenzenLogoImg, 'PNG', footerLogoX, footerY - footerLogoSize / 2, footerLogoSize, footerLogoSize);
+  } else if (tenzenLogoUrl) {
+    // Use loaded URL
+    const footerLogoSize = 12;
+    const footerLogoX = footerRightX - footerLogoSize - 2;
+    const footerTextX = footerLogoX - 5;
+    
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(120, 120, 120);
+    const poweredByText = 'Powered by TenZen';
+    const textWidth = doc.getTextWidth(poweredByText);
+    
+    // Draw text first, then logo
+    doc.text(poweredByText, footerTextX - textWidth, footerY, { align: 'right' });
+    doc.addImage(tenzenLogoUrl, 'PNG', footerLogoX, footerY - footerLogoSize / 2, footerLogoSize, footerLogoSize);
+  } else {
+    // No logo available, just show text
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(120, 120, 120);
+    doc.text('Powered by TenZen', footerRightX, footerY, { align: 'right' });
+  }
+
+  return doc.output('blob');
 };

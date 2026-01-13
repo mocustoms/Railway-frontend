@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { Printer } from 'lucide-react';
 import { SalesInvoice, SalesInvoiceItem } from '../types';
 import { formatCurrency, formatDate } from '../utils/formatters';
 
@@ -55,6 +56,27 @@ const SalesInvoiceView: React.FC<SalesInvoiceViewProps> = ({
     return '-';
   };
 
+  // Handle print functionality - Generate PDF
+  const handlePrint = async () => {
+    try {
+      const { generateSalesInvoicePDF } = await import('../utils/pdfGenerator');
+      
+      const blob = await generateSalesInvoicePDF(salesInvoice);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `invoice-${salesInvoice.invoiceRefNumber || 'invoice'}-${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      // Fallback to browser print if PDF generation fails
+      window.print();
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -62,14 +84,27 @@ const SalesInvoiceView: React.FC<SalesInvoiceViewProps> = ({
           <h3 className="text-lg font-semibold text-gray-900">Sales Invoice Details</h3>
           <p className="text-sm text-gray-500">Reference: {salesInvoice.invoiceRefNumber}</p>
         </div>
-        {onEdit && salesInvoice.status !== 'cancelled' && salesInvoice.status !== 'paid' && salesInvoice.status !== 'approved' && (
+        <div className="flex items-center gap-2 no-print">
           <button 
-            onClick={onEdit}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            onClick={handlePrint}
+            className="inline-flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors duration-150"
+            style={{ backgroundColor: '#f87b1b' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e06a0f'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f87b1b'}
+            title="Print Invoice"
           >
-            Edit
+            <Printer className="h-4 w-4" />
+            Print
           </button>
-        )}
+          {onEdit && salesInvoice.status !== 'cancelled' && salesInvoice.status !== 'paid' && salesInvoice.status !== 'approved' && (
+            <button 
+              onClick={onEdit}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-150 no-print"
+            >
+              Edit
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Basic Information */}
