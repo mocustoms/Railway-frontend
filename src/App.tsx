@@ -72,6 +72,7 @@ import ProductCatalog from './pages/ProductCatalog';
 import ImportProducts from './pages/ImportProducts';
 import ImportCustomers from './pages/ImportCustomers';
 import ImportCustomerDeposits from './pages/ImportCustomerDeposits';
+import ImportSalesTransactions from './pages/ImportSalesTransactions';
 import DataImportation from './pages/DataImportation';
 import AdjustmentReasons from './pages/AdjustmentReasons';
 import StockAdjustment from './pages/StockAdjustment';
@@ -633,6 +634,16 @@ const AppContent: React.FC = () => {
             <ProtectedRoute>
               <Layout>
                 <ImportCustomerDeposits />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/import-sales-transactions"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <ImportSalesTransactions />
               </Layout>
             </ProtectedRoute>
           }

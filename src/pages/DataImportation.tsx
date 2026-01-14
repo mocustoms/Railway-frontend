@@ -7,7 +7,9 @@ import {
   Package, 
   Users,
   CreditCard,
-  ArrowLeft
+  ArrowLeft,
+  Receipt,
+  Store
 } from 'lucide-react';
 import GridLayout from '../components/GridLayout';
 import Card from '../components/Card';
@@ -23,6 +25,8 @@ const DataImportation: React.FC = () => {
     { text: 'import products', icon: Package, href: '/import-products' },
     { text: 'import customers', icon: Users, href: '/import-customers' },
     { text: 'import customer deposits', icon: CreditCard, href: '/import-customer-deposits' },
+    { text: 'import sales transactions', icon: Receipt, href: '/import-sales-transactions' },
+    { text: 'import stores', icon: Store, href: '/advance-setup/store/import' },
     { text: 'data importation', icon: Upload, href: '/data-importation' }
   ];
 
@@ -68,6 +72,20 @@ const DataImportation: React.FC = () => {
       description: 'Bulk import customer deposits from Excel files',
       icon: CreditCard,
       href: '/import-customer-deposits'
+    },
+    {
+      id: 'import-sales-transactions',
+      title: 'Import Sales Transactions',
+      description: 'Bulk import sales invoices, receipts, and credit transactions from Excel files',
+      icon: Receipt,
+      href: '/import-sales-transactions'
+    },
+    {
+      id: 'import-stores',
+      title: 'Import Stores',
+      description: 'Bulk import stores from CSV or Excel files',
+      icon: Store,
+      href: '/advance-setup/store/import'
     }
   ];
 

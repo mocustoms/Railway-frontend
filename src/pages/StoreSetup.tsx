@@ -555,18 +555,6 @@ const StoreSetup: React.FC = () => {
         {/* Floating Action Buttons */}
        {!showForm && (
          <div className="fixed bottom-6 right-6 flex flex-col items-end space-y-3">
-           {/* Import Stores FAB */}
-           {canImport && (
-             <button
-               onClick={handleImport}
-               disabled={isLoading}
-               className="w-14 h-14 bg-green-600 hover:bg-green-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-200 transform hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
-               title="Import Stores"
-             >
-               <Upload size={24} />
-             </button>
-           )}
-           
            {/* Add Store FAB */}
            {canCreate && (
              <button

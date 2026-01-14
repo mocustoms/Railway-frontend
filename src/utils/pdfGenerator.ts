@@ -1452,17 +1452,20 @@ export const generateSalesInvoicePDF = async (
   // ========== CUSTOMER AND ORGANIZATION INFO SECTION ==========
   const infoSectionY = currentY;
   
-  // Calculate column positions - Company Details far left, Customer Info far right
+  // Calculate column positions - Company Details far left, Customer Info aligned with table right edge
   const leftColumnX = margin;
   const centerGap = 50; // Gap between columns to prevent overlap
   const maxLeftColumnWidth = 75; // Fixed width for left column (Company Details)
   
-  // Customer Details positioned at far right with wider column
-  // Position it as far right as possible - start closer to right edge
+  // Calculate table width (will be used to align Customer Details)
+  // Note: availableWidth is declared later in the table section, so we calculate it here with a different name
+  const tableAvailableWidth = pageWidth - (margin * 2);
+  
+  // Customer Details positioned to align with right edge of product table
   const customerDetailsWidth = 85; // Width for customer details column
-  // Position starting from right edge minus margin and width
-  // For A4 (210mm): 210 - 15 - 85 = 110mm from left (truly far right)
-  const customerDetailsLeftEdge = pageWidth - margin - customerDetailsWidth;
+  // Position to align with table right edge: margin + tableAvailableWidth - customerDetailsWidth
+  // This will align the right edge of Customer Details with the right edge of the table
+  const customerDetailsLeftEdge = margin + tableAvailableWidth - customerDetailsWidth;
   
   // Ensure minimum column widths
   const minColumnWidth = 60; // Minimum width to prevent too narrow columns
