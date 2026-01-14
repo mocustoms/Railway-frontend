@@ -235,10 +235,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, isMobileOpen =
     // Handle Advance Setup module and its sub-modules
     if (path === '/advance-setup') {
       return location.pathname === path || 
-             location.pathname.startsWith(path + '/') ||
+             (location.pathname.startsWith(path + '/') && location.pathname !== '/advance-setup/store/import') ||
              location.pathname === '/company-setup' ||
              location.pathname === '/store-setup' ||
-             location.pathname === '/import-stores' ||
              location.pathname === '/currency-setup' ||
              location.pathname === '/exchange-rate-setup' ||
              location.pathname === '/financial-year';
@@ -263,7 +262,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, isMobileOpen =
              location.pathname.startsWith(path + '/') ||
              location.pathname === '/import-products' ||
              location.pathname === '/import-customers' ||
-             location.pathname === '/import-customer-deposits';
+             location.pathname === '/import-customer-deposits' ||
+             location.pathname === '/import-sales-transactions' ||
+             location.pathname === '/advance-setup/store/import';
     }
     
     // Handle Administrative module and its sub-modules
@@ -316,10 +317,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, isMobileOpen =
         currentPath.startsWith('/purchases') ||
         currentPath.startsWith('/products') || 
         currentPath.startsWith('/accounts') || 
-        currentPath.startsWith('/advance-setup') || 
+        (currentPath.startsWith('/advance-setup') && currentPath !== '/advance-setup/store/import') || 
         currentPath.startsWith('/administrative') || 
         currentPath.startsWith('/inventory-management') || 
         currentPath.startsWith('/data-importation') || 
+        currentPath === '/advance-setup/store/import' ||
+        currentPath.startsWith('/import-') ||
         currentPath.startsWith('/users') || 
         currentPath === '/dashboard')) {
       

@@ -1,0 +1,326 @@
+import React, { useState, useRef } from 'react';
+import { useImportSalesTransactions } from '../hooks/useImportSalesTransactions';
+import { Download, Upload, FileSpreadsheet, AlertCircle, CheckCircle, X, ArrowLeft, Receipt, CreditCard, FileText } from 'lucide-react';
+import Button from '../components/Button';
+import { Card } from '../components/ui/Card';
+import { Alert } from '../components/ui/Alert';
+import { Progress } from '../components/ui/Progress';
+import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+
+const ImportSalesTransactions: React.FC = () => {
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  
+  const {
+    downloadTemplate,
+    uploadFile,
+    importData,
+    isDownloading,
+    isUploading,
+    isImporting,
+    progress,
+    errors,
+    warnings,
+    success,
+    importSummary,
+    clearMessages
+  } = useImportSalesTransactions();
+
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      clearMessages();
+    }
+  };
+
+  const handleUpload = async () => {
+    if (selectedFile) {
+      await uploadFile(selectedFile);
+      // Reset file input after upload
+      setSelectedFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleImport = async () => {
+    await importData();
+  };
+
+  // Don't render if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={() => navigate('/data-importation')}
+            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-100 transform hover:scale-105"
+          >
+            <ArrowLeft size={16} className="mr-2" />
+            Back to Data Importation
+          </button>
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Import Sales Transactions</h1>
+          <p className="text-sm text-gray-600">Import sales invoices, receipts, and credit transactions from Excel</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Download Template Section */}
+        <Card className="p-6">
+          <div className="flex items-center mb-4">
+            <Download className="w-5 h-5 text-blue-600 mr-2" />
+            <h2 className="text-lg font-semibold text-gray-900">Download Template</h2>
+          </div>
+          <p className="text-gray-600 mb-4">
+            Download the Excel template with the correct column structure for importing sales transactions, receipts, and credit transactions.
+          </p>
+          <Button
+            onClick={downloadTemplate}
+            disabled={isDownloading}
+            className="w-full"
+            variant="primary"
+          >
+            {isDownloading ? 'Downloading...' : 'Download Template'}
+          </Button>
+        </Card>
+
+        {/* Upload File Section */}
+        <Card className="p-6">
+          <div className="flex items-center mb-4">
+            <Upload className="w-5 h-5 text-green-600 mr-2" />
+            <h2 className="text-lg font-semibold text-gray-900">Upload File</h2>
+          </div>
+          <p className="text-gray-600 mb-4">
+            Select your filled Excel file to upload and validate the transaction data.
+          </p>
+          
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+            <FileSpreadsheet className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <input
+              type="file"
+              accept=".xlsx,.xls"
+              onChange={handleFileSelect}
+              className="hidden"
+              id="file-upload"
+              ref={fileInputRef}
+            />
+            <label
+              htmlFor="file-upload"
+              className="cursor-pointer text-blue-600 hover:text-blue-700 font-medium"
+            >
+              {selectedFile ? selectedFile.name : 'Choose Excel file'}
+            </label>
+            {selectedFile && (
+              <div className="mt-2">
+                <p className="text-sm text-gray-500">
+                  File size: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                </p>
+                <button
+                  onClick={() => {
+                    setSelectedFile(null);
+                    if (fileInputRef.current) {
+                      fileInputRef.current.value = '';
+                    }
+                    clearMessages();
+                  }}
+                  className="text-sm text-red-600 hover:text-red-700 mt-1"
+                >
+                  Clear file
+                </button>
+              </div>
+            )}
+          </div>
+
+          {selectedFile && (
+            <Button
+              onClick={handleUpload}
+              disabled={isUploading}
+              className="w-full mt-4"
+              variant="primary"
+            >
+              {isUploading ? 'Uploading...' : 'Upload File'}
+            </Button>
+          )}
+        </Card>
+      </div>
+
+      {/* Progress Section */}
+      {(isUploading || isImporting) && (
+        <Card className="mt-6 p-6">
+          <div className="flex items-center mb-4">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+            <h3 className="text-lg font-semibold text-gray-900">
+              {isUploading ? 'Uploading File...' : 'Importing Sales Transactions...'}
+            </h3>
+          </div>
+          <Progress value={progress} className="w-full" />
+          <p className="text-sm text-gray-600 mt-2">
+            {progress}% complete
+          </p>
+        </Card>
+      )}
+
+      {/* Import Summary Section */}
+      {importSummary && (
+        <Card className="mt-6 p-6 bg-green-50 border-green-200">
+          <div className="flex items-center mb-4">
+            <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
+            <h3 className="text-lg font-semibold text-green-900">Import Summary</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-white rounded-lg p-4 border border-green-200">
+              <div className="flex items-center space-x-2 mb-2">
+                <FileText className="w-4 h-4 text-blue-600" />
+                <span className="text-sm font-medium text-gray-700">Invoices Created</span>
+              </div>
+              <p className="text-2xl font-bold text-blue-600">{importSummary.invoicesCreated}</p>
+            </div>
+            <div className="bg-white rounded-lg p-4 border border-green-200">
+              <div className="flex items-center space-x-2 mb-2">
+                <Receipt className="w-4 h-4 text-green-600" />
+                <span className="text-sm font-medium text-gray-700">Receipts Created</span>
+              </div>
+              <p className="text-2xl font-bold text-green-600">{importSummary.receiptsCreated}</p>
+            </div>
+            <div className="bg-white rounded-lg p-4 border border-green-200">
+              <div className="flex items-center space-x-2 mb-2">
+                <CreditCard className="w-4 h-4 text-orange-600" />
+                <span className="text-sm font-medium text-gray-700">Credit Transactions</span>
+              </div>
+              <p className="text-2xl font-bold text-orange-600">{importSummary.creditTransactions}</p>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Messages Section */}
+      {(errors.length > 0 || warnings.length > 0 || success) && (
+        <Card className="mt-6 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Import Results</h3>
+            <Button
+              onClick={clearMessages}
+              variant="ghost"
+              size="sm"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+
+          {success && (
+            <Alert variant="success" className="mb-4">
+              <CheckCircle className="w-4 h-4" />
+              <span>{success}</span>
+            </Alert>
+          )}
+
+          {warnings.length > 0 && (
+            <div className="space-y-2 mb-4">
+              <div className="flex items-center text-orange-600 font-medium">
+                <AlertCircle className="w-4 h-4 mr-2" />
+                Found {warnings.length} warning(s) - Optional fields missing:
+              </div>
+              <div className="max-h-60 overflow-y-auto">
+                {warnings.map((warning, index) => (
+                  <div key={index} className="text-sm text-orange-600 bg-orange-50 p-2 rounded">
+                    Row {warning.row} ({warning.transaction}): {warning.message}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {errors.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center text-red-600 font-medium">
+                <AlertCircle className="w-4 h-4 mr-2" />
+                Found {errors.length} error(s):
+              </div>
+              <div className="max-h-60 overflow-y-auto">
+                {errors.map((error, index) => (
+                  <div key={index} className="text-sm text-red-600 bg-red-50 p-2 rounded">
+                    Row {error.row}: {error.message}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {errors.length === 0 && success && !importSummary && (
+            <Button
+              onClick={handleImport}
+              disabled={isImporting}
+              className="w-full mt-4"
+              variant="primary"
+            >
+              {isImporting ? 'Importing...' : 'Import Valid Transactions'}
+            </Button>
+          )}
+        </Card>
+      )}
+
+      {/* Instructions */}
+      <Card className="mt-6 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Instructions</h3>
+        <div className="space-y-3 text-sm text-gray-600">
+          <div className="flex items-start">
+            <span className="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium mr-3 mt-0.5">1</span>
+            <span>Download the Excel template using the button above</span>
+          </div>
+          <div className="flex items-start">
+            <span className="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium mr-3 mt-0.5">2</span>
+            <span>Fill in your sales transaction data following the template structure. Include invoice details, items, and payment information (if applicable)</span>
+          </div>
+          <div className="flex items-start">
+            <span className="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium mr-3 mt-0.5">3</span>
+            <span>Save the file and upload it using the upload section</span>
+          </div>
+          <div className="flex items-start">
+            <span className="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium mr-3 mt-0.5">4</span>
+            <span>Review any validation errors and warnings, then fix them if needed</span>
+          </div>
+          <div className="flex items-start">
+            <span className="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium mr-3 mt-0.5">5</span>
+            <span>Click "Import Valid Transactions" to complete the import. The system will create invoices, receipts (if payment info provided), and mark credit transactions automatically</span>
+          </div>
+        </div>
+
+        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <h4 className="font-semibold text-blue-900 mb-2">Important Notes:</h4>
+          <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
+            <li>Each row represents one sales invoice with its items and payment information</li>
+            <li>If payment information is provided, a receipt will be automatically created</li>
+            <li>Invoices without payment information will be created as credit transactions</li>
+            <li>All required fields (customer, store, products, dates) must be provided</li>
+            <li>Product codes must match existing products in the system</li>
+            <li>Customer codes must match existing customers in the system</li>
+            <li>Store codes must match existing stores in the system</li>
+            <li>Transaction dates must fall within an active financial year</li>
+          </ul>
+        </div>
+      </Card>
+    </div>
+  );
+};
+
+export default ImportSalesTransactions;
