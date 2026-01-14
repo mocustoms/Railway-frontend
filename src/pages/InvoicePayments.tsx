@@ -276,7 +276,7 @@ const InvoicePayments: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Total Payments</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.total ?? 0}</p>
               </div>
             </div>
           </Card>
@@ -288,7 +288,7 @@ const InvoicePayments: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Active</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.active}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.active ?? 0}</p>
               </div>
             </div>
           </Card>
@@ -300,7 +300,7 @@ const InvoicePayments: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Reversed</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.reversed}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.reversed ?? 0}</p>
               </div>
             </div>
           </Card>
@@ -312,7 +312,7 @@ const InvoicePayments: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Cancelled</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.cancelled}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.cancelled ?? 0}</p>
               </div>
             </div>
           </Card>
@@ -327,7 +327,7 @@ const InvoicePayments: React.FC = () => {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Amount</p>
               <p className="text-2xl font-bold text-gray-900">
-                {formatCurrency(stats.totalAmount, defaultCurrencySymbol)}
+                {formatCurrency(stats.totalAmount ?? 0, defaultCurrencySymbol)}
               </p>
             </div>
           </div>
@@ -716,7 +716,7 @@ const InvoicePayments: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {selectedPayment.items.map((item: PurchaseInvoicePaymentItem) => (
+                        {selectedPayment?.items?.map((item: PurchaseInvoicePaymentItem) => (
                           <tr key={item.id}>
                             <td className="px-4 py-2 text-sm text-gray-900">
                               {item.product?.name || '-'}

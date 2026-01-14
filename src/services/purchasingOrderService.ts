@@ -147,7 +147,7 @@ export const purchasingOrderService = {
 
     const response = await api.get(`/purchasing-orders?${params.toString()}`);
     return {
-      purchasingOrders: response.data.purchasingOrders.map(transformPurchasingOrder),
+      purchasingOrders: response.data?.purchasingOrders?.length ? response.data?.purchasingOrders?.map(transformPurchasingOrder) : [],
       pagination: response.data.pagination
     };
   },
@@ -276,7 +276,7 @@ export const purchasingOrderService = {
   },
 
   getPurchasingOrderStats: async (): Promise<PurchasingOrderStats> => {
-    const response = await api.get('/purchasing-orders/stats/overview');
+    const response = await api.get('/purchasing-orders/stats');
     return response.data;
   },
 

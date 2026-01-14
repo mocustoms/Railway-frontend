@@ -109,8 +109,8 @@ export const purchaseInvoicePaymentService = {
 
     const response = await api.get(`/purchase-invoice-payments?${params.toString()}`);
     return {
-      payments: response.data.payments.map(transformPayment),
-      pagination: response.data.pagination
+      payments: response.data?.payments?.length ? response.data?.payments?.map(transformPayment) : [],
+      pagination: response.data?.pagination
     };
   },
 

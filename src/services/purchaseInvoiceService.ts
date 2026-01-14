@@ -157,8 +157,8 @@ export const purchaseInvoiceService = {
 
     const response = await api.get(`/purchase-invoices?${params.toString()}`);
     return {
-      purchaseInvoices: response.data.purchaseInvoices.map(transformPurchaseInvoice),
-      pagination: response.data.pagination
+      purchaseInvoices: response.data?.purchaseInvoices?.length ? response.data?.purchaseInvoices?.map(transformPurchaseInvoice) : [],
+      pagination: response.data?.pagination
     };
   },
 
