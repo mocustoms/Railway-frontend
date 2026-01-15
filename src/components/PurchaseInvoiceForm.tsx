@@ -2860,24 +2860,6 @@ const PurchaseInvoiceForm: React.FC<PurchaseInvoiceFormProps> = ({
                                 </div>
                               </div>
                               <div className="text-right">
-                                {(() => {
-                                  const productType = product.product_type;
-                                  // Skip stock display for services products
-                                  if (productType === 'services') {
-                                    return null;
-                                  }
-                                  const availableStock = product.currentQuantity || product.store_balance || 0;
-                                  const stockColor = availableStock === 0 
-                                    ? 'text-red-600 font-semibold' 
-                                    : availableStock < 10 
-                                    ? 'text-orange-600 font-medium' 
-                                    : 'text-green-600';
-                                  return (
-                                    <p className={`text-xs ${stockColor}`}>
-                                      Stock: {availableStock.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
-                                    </p>
-                                  );
-                                })()}
                                 {product.unit && (
                                   <p className="text-xs text-gray-400">{product.unit.name}</p>
                                 )}
@@ -3157,59 +3139,10 @@ const PurchaseInvoiceForm: React.FC<PurchaseInvoiceFormProps> = ({
                                           setValue(`items.${index}.discountAmount`, Math.max(0, maxDiscount));
                                           toast.error('Discount amount adjusted to match the new quantity');
                                         }
-                                        
-                                        // Check stock availability (skip for services products)
-                                        const productType = product?.product_type;
-                                        if (productType !== 'services') {
-                                          const availableStock = product?.currentQuantity || product?.store_balance || 0;
-                                          if (newQuantity > availableStock) {
-                                            toast.error(`Insufficient stock! Available: ${availableStock.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`);
-                                          }
-                                        }
                                       }
                                     })}
-                                    className={`w-20 px-2 py-1 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                                      (() => {
-                                        const productType = product?.product_type;
-                                        if (productType === 'services') {
-                                          return 'border-gray-300';
-                                        }
-                                        const quantity = Number(watch(`items.${index}.quantity`)) || 0;
-                                        const availableStock = product?.currentQuantity || product?.store_balance || 0;
-                                        return quantity > availableStock ? 'border-red-500 bg-red-50' : 'border-gray-300';
-                                      })()
-                                    }`}
+                                    className="w-20 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                   />
-                                  {(() => {
-                                    const productType = product?.product_type;
-                                    // Skip stock display for services products
-                                    if (productType === 'services') {
-                                      return null;
-                                    }
-                                    const availableStock = product?.currentQuantity || product?.store_balance || 0;
-                                    const quantity = Number(watch(`items.${index}.quantity`)) || 0;
-                                    if (availableStock !== undefined && availableStock !== null) {
-                                      const stockColor = availableStock === 0 
-                                        ? 'text-red-600 font-semibold' 
-                                        : availableStock < 10 
-                                        ? 'text-orange-600' 
-                                        : 'text-gray-600';
-                                      const exceedsStock = quantity > availableStock;
-                                      return (
-                                        <div className="mt-1">
-                                          <p className={`text-xs ${stockColor}`}>
-                                            Available: {availableStock.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
-                                          </p>
-                                          {exceedsStock && (
-                                            <p className="text-xs text-red-600 font-medium mt-0.5">
-                                              Exceeds available stock!
-                                            </p>
-                                          )}
-                                        </div>
-                                      );
-                                    }
-                                    return null;
-                                  })()}
                                 </div>
                                 {errors.items?.[index]?.quantity && (
                                   <p className="text-xs text-red-600 mt-1">
