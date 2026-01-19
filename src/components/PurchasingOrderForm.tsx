@@ -722,6 +722,8 @@ const PurchasingOrderForm: React.FC<PurchasingOrderFormProps> = ({
   // Load purchasing order data for editing
   useEffect(() => {
     if (!purchasingOrder || !isInitialDataLoaded) {
+      const timeStamp = new Date().getTime();
+      setReferenceNumber(`PO/${timeStamp}`);
       return;
     }
 

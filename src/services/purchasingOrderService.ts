@@ -1,4 +1,4 @@
-import { api } from './api';
+import api from './api';
 import {
   PurchasingOrder,
   PurchasingOrderStats,
@@ -18,10 +18,11 @@ export interface PurchasingOrderResponse {
 }
 
 const transformPurchasingOrder = (data: any): PurchasingOrder => {
+  console.log('Transforming purchasing order data:', {data});
   return {
     id: data.id,
-    purchasingOrderRefNumber: data.purchasingOrderRefNumber || data.purchasing_order_ref_number,
-    purchasingOrderDate: data.purchasingOrderDate || data.purchasing_order_date,
+    purchasingOrderRefNumber: data.poNumber || data.po_number,
+    purchasingOrderDate: data.orderDate || data.order_date,
     storeId: data.storeId || data.store_id,
     storeName: data.storeName || data.store?.name,
     vendorId: data.vendorId || data.vendor_id,
@@ -137,6 +138,7 @@ export const purchasingOrderService = {
       sortBy: sortConfig.field,
       sortOrder: sortConfig.direction.toUpperCase()
     });
+    console.log('Fetching Purchasing Orders with params:', params.toString());
 
     // Add filters to params
     Object.entries(filters).forEach(([key, value]) => {
@@ -145,10 +147,15 @@ export const purchasingOrderService = {
       }
     });
 
+    // Use the API wrapper which returns a consistent `{ success, data, pagination }` shape
     const response = await api.get(`/purchasing-orders?${params.toString()}`);
+    // response.data is expected to be an object like: { data: [...], pagination: {...} }
+    const payload = response.data || {} as any;
+    console.log('Received Purchasing Orders response payload:', payload);
+    const items = Array.isArray(payload.data) ? payload.data : (Array.isArray(payload) ? payload : []);
     return {
-      purchasingOrders: response.data?.purchasingOrders?.length ? response.data?.purchasingOrders?.map(transformPurchasingOrder) : [],
-      pagination: response.data.pagination
+      purchasingOrders: items.map(transformPurchasingOrder),
+      pagination: payload.pagination || (payload.pagination ? payload.pagination : { currentPage: page, totalPages: 0, totalItems: 0, itemsPerPage: limit })
     };
   },
 
@@ -165,6 +172,7 @@ export const purchasingOrderService = {
   createPurchasingOrder: async (data: PurchasingOrderFormData): Promise<PurchasingOrder> => {
     const transformedData = {
       purchasing_order_date: data.purchasingOrderDate,
+      purchasing_order_ref_number: data.purchasingOrderRefNumber,
       store_id: data.storeId,
       vendor_id: data.vendorId,
       currency_id: data.currencyId,

@@ -220,7 +220,7 @@ const PurchasingOrderView: React.FC<PurchasingOrderViewProps> = ({
                       </td>
                     )}
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {item.taxPercentage ? `${item.taxPercentage.toFixed(2)}%` : '-'}
+                      {item.taxPercentage ? `${item.taxPercentage}%` : '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {formatNumber(item.lineTotal)}

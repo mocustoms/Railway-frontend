@@ -49,16 +49,16 @@ export const useAppUpdate = (): UseAppUpdateReturn => {
       
       if (hasUpdate) {
         const details = await appUpdateService.getUpdateDetails();
-        const serverVersion = await appUpdateService.getServerVersion();
+        // const serverVersion = await appUpdateService.getServerVersion();
         
         // Check if this update was already dismissed
-        if (dismissedBuildId === serverVersion.buildId) {
+        // if (dismissedBuildId === serverVersion.buildId) {
           setIsUpdateAvailable(false);
           setUpdateDetails(null);
-        } else {
-          setIsUpdateAvailable(true);
-          setUpdateDetails(details);
-        }
+        // } else {
+        //   setIsUpdateAvailable(true);
+        //   setUpdateDetails(details);
+        // }
       } else {
         setIsUpdateAvailable(false);
         setUpdateDetails(null);
@@ -159,8 +159,8 @@ export const useAppUpdate = (): UseAppUpdateReturn => {
       if (!clientVersion) {
         // No stored version, get from server and store it
         try {
-          const serverVersion = await appUpdateService.getServerVersion();
-          appUpdateService.setClientVersion(serverVersion);
+          // const serverVersion = await appUpdateService.getServerVersion();
+          // appUpdateService.setClientVersion(serverVersion);
         } catch (error) {
           // Ignore errors
         }

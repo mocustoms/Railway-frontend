@@ -1263,14 +1263,15 @@ const AppContent: React.FC = () => {
         </Router>
         
         {/* Update Notification Modal */}
-        {updateDetails && (
+        {/* {updateDetails && (
           <UpdateNotificationModal
             isOpen={isUpdateAvailable}
             onClose={dismissUpdate}
             onAccept={acceptUpdate}
             updateDetails={updateDetails}
           />
-        )}
+        )
+        } */}
       </>
   );
 };

@@ -204,7 +204,6 @@ export const usePurchasingOrderManagement = () => {
       toast.error(error.response?.data?.message || 'Failed to reopen purchasing order');
     }
   });
-
   // Computed values
   const purchasingOrders = useMemo(() => purchasingOrdersResponse?.purchasingOrders || [], [purchasingOrdersResponse]);
   const totalItems = useMemo(() => purchasingOrdersResponse?.pagination?.totalItems || 0, [purchasingOrdersResponse]);
@@ -323,6 +322,8 @@ export const usePurchasingOrderManagement = () => {
   const canAccept = useMemo(() => user?.role === 'admin' || user?.role === 'manager', [user?.role]);
   const canReject = useMemo(() => user?.role === 'admin' || user?.role === 'manager', [user?.role]);
   const canReceive = useMemo(() => user?.role === 'admin' || user?.role === 'manager', [user?.role]);
+
+  // console.log('purchasing orders', purchasingOrders);
 
   return {
     // Data
