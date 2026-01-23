@@ -878,6 +878,8 @@ const PurchaseInvoiceForm: React.FC<PurchaseInvoiceFormProps> = ({
   // Load sales order data for editing
   useEffect(() => {
     if (!purchaseInvoice || !isInitialDataLoaded) {
+      const referenceNumber = `INV-${new Date().getTime()}`;
+      setReferenceNumber(referenceNumber);
       return;
     }
 

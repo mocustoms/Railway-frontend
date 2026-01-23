@@ -1,4 +1,4 @@
-import { api } from './api';
+import api from './api';
 import {
   PurchaseInvoice,
   PurchaseInvoiceStats,
@@ -148,6 +148,8 @@ export const purchaseInvoiceService = {
       sortOrder: sortConfig.direction.toUpperCase()
     });
 
+    console.log('Fetching purchase invoices with params:', params.toString());
+
     // Add filters to params
     Object.entries(filters).forEach(([key, value]) => {
       if (value !== undefined && value !== null && value !== '') {
@@ -156,9 +158,12 @@ export const purchaseInvoiceService = {
     });
 
     const response = await api.get(`/purchase-invoices?${params.toString()}`);
+    // response.data is expected to be either an array or an object like { data: [...], pagination: {...} }
+    const payload = response.data || {} as any;
+    const items = Array.isArray(payload.data) ? payload.data : (Array.isArray(payload) ? payload : []);
     return {
-      purchaseInvoices: response.data?.purchaseInvoices?.length ? response.data?.purchaseInvoices?.map(transformPurchaseInvoice) : [],
-      pagination: response.data?.pagination
+      purchaseInvoices: items.map(transformPurchaseInvoice),
+      pagination: payload.pagination || { currentPage: page, totalPages: 0, totalItems: 0, itemsPerPage: limit }
     };
   },
 

@@ -707,6 +707,8 @@ const PurchaseInvoices: React.FC = () => {
     );
   }
 
+  console.log('Rendering PurchaseInvoices component with stats:', stats);
+
   return (
     <div className="min-h-screen bg-gray-50 animate-fadeIn">
       <ContentContainer>
