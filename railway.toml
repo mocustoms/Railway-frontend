@@ -6,8 +6,8 @@
 
 [build]
 builder = "RAILPACK"
-# Create React App: build produces static files in build/
-buildCommand = "npm run build"
+# Install deps then build (CRA outputs to build/)
+buildCommand = "npm install && npm run build"
 
 [deploy]
 # Serve the built app (SPA: -s sends all routes to index.html)
