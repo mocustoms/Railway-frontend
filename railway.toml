@@ -1,0 +1,21 @@
+# Railway config-as-code for Tenzen/EasyMauzo Frontend (React CRA)
+# See: https://docs.railway.app/guides/config-as-code
+#
+# Deploy from Tenzen_Frontend as the service root, or set the config file
+# path in Railway to: Tenzen_Frontend/railway.toml (if repo root is project root).
+
+[build]
+builder = "RAILPACK"
+# Create React App: build produces static files in build/
+buildCommand = "npm run build"
+
+[deploy]
+# Serve the built app (SPA: -s sends all routes to index.html)
+startCommand = "npx serve -s build -l $PORT"
+
+# Health check: root returns index.html
+healthcheckPath = "/"
+healthcheckTimeout = 60
+
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5
