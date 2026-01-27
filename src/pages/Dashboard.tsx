@@ -418,7 +418,7 @@ const Dashboard: React.FC = () => {
         callbacks: {
           label: (context: any) => {
             const value = context.parsed.y;
-            return formatCurrency(value, defaultCurrencyCode, defaultCurrencySymbol);
+            return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
           },
         },
       },
@@ -428,22 +428,21 @@ const Dashboard: React.FC = () => {
         beginAtZero: true,
         ticks: {
           callback: (value: any) => {
-            // Format y-axis labels with currency symbol
+            // Format y-axis labels (amount only, no currency symbol)
             if (typeof value === 'number') {
-              // For large numbers, show abbreviated format
               if (value >= 1000000) {
-                return `${defaultCurrencySymbol}${(value / 1000000).toFixed(1)}M`;
+                return `${(value / 1000000).toFixed(1)}M`;
               } else if (value >= 1000) {
-                return `${defaultCurrencySymbol}${(value / 1000).toFixed(1)}K`;
+                return `${(value / 1000).toFixed(1)}K`;
               }
-              return `${defaultCurrencySymbol}${value.toLocaleString()}`;
+              return value.toLocaleString();
             }
             return value;
           },
         },
       },
     },
-  }), [defaultCurrencyCode, defaultCurrencySymbol]);
+  }), []);
 
   const formatValue = (value: string | number) => {
     if (typeof value === 'number') {
@@ -463,7 +462,6 @@ const Dashboard: React.FC = () => {
           title="Revenue"
           value={stats.revenue}
           icon={TrendingUp}
-          growth={stats.revenueGrowth}
           iconBgColor="#dbeafe"
           iconColor="#3b82f6"
           formatValue={formatValue}
@@ -472,7 +470,6 @@ const Dashboard: React.FC = () => {
           title="Receipts"
           value={stats.receiptsTotalValue}
           icon={Receipt}
-          growth={stats.receiptsGrowth}
           iconBgColor="#fed7aa"
           iconColor="#ea580c"
           formatValue={formatValue}
@@ -481,7 +478,6 @@ const Dashboard: React.FC = () => {
           title="Total Orders"
           value={stats.totalOrders}
           icon={ShoppingCart}
-          growth={stats.ordersGrowth}
           iconBgColor="#dcfce7"
           iconColor="#16a34a"
         />
@@ -489,7 +485,6 @@ const Dashboard: React.FC = () => {
           title="Customers"
           value={stats.totalCustomers}
           icon={Users}
-          growth={stats.customersGrowth}
           iconBgColor="#f3e8ff"
           iconColor="#7c3aed"
         />
@@ -581,7 +576,9 @@ const Dashboard: React.FC = () => {
             {/* Table Header */}
             <div className="grid grid-cols-2 gap-4 px-4 py-3 bg-gray-50 border-b border-gray-200 rounded-t-lg">
               <div className="font-semibold text-sm text-gray-700">Product Name</div>
-              <div className="font-semibold text-sm text-gray-700 text-right">Amount</div>
+              <div className="font-semibold text-sm text-gray-700 text-right">
+                Amount ({defaultCurrencySymbol || defaultCurrencyCode})
+              </div>
             </div>
             {/* Table Rows */}
             {topProducts.map((product, index) => (
@@ -597,7 +594,7 @@ const Dashboard: React.FC = () => {
                 </div>
                 <div className="text-right">
                   <span className="font-semibold text-gray-900">
-                    {formatCurrency(product.revenue, defaultCurrencyCode, defaultCurrencySymbol)}
+                    {product.revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>
               </div>
