@@ -22,7 +22,7 @@ const getBaseUrl = (): string => {
       return `${protocol}//${hostname}${port}/api`;
     }
   }
-  return process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+  return process.env.REACT_APP_API_URL || 'https://railway-backend-production-ac2b.up.railway.app/api';
 };
 
 // Create a direct axios instance for auth endpoints (they don't use ApiResponse wrapper)

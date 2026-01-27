@@ -4,16 +4,18 @@ import { ApiResponse } from '../types';
 // Get the base URL for API calls
 const getBaseUrl = (): string => {
   // In production, try to detect the current hostname if REACT_APP_API_URL is not set
-  if (process.env.NODE_ENV === 'production' && !process.env.REACT_APP_API_URL) {
-    // Use the current window location to determine the API URL
-    if (typeof window !== 'undefined') {
-      const protocol = window.location.protocol;
-      const hostname = window.location.hostname;
-      const port = window.location.port ? `:${window.location.port}` : '';
-      return `${protocol}//${hostname}${port}/api`;
-    }
-  }
-  return process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+  // if (process.env.NODE_ENV === 'production' && !process.env.REACT_APP_API_URL) {
+  //   // Use the current window location to determine the API URL
+  //   if (typeof window !== 'undefined') {
+  //     const protocol = window.location.protocol;
+  //     const hostname = window.location.hostname;
+  //     const port = window.location.port ? `:${window.location.port}` : '';
+  //     return `${protocol}//${hostname}${port}/api`;
+  //   }
+  // }
+  console.log('process.env.REACT_APP_API_URL', process.env.REACT_APP_API_URL);
+  return 'https://railway-backend-production-ac2b.up.railway.app/api';
+  // return process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
 };
 
 // Create axios instance with default configuration
