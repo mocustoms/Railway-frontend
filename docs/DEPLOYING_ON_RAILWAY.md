@@ -1,6 +1,23 @@
 # Deploying the Frontend on Railway
 
-This guide explains how to deploy the Tenzen/EasyMauzo React frontend to [Railway](https://railway.app) using the included config-as-code files.
+This guide explains how to deploy the Tenzen/EasyMauzo React frontend to [Railway](https://railway.app) using the included config-as-code files, and how the **local** app connects to the **Railway backend**.
+
+## Local connection to Railway backend
+
+When you run the app **locally** (`npm start`), it still talks to your **backend on Railway** (or to a local backend). The API base URL is controlled by **`REACT_APP_API_URL`** (Create React App bakes this in at **build** time).
+
+| Where | How it’s set | Effect |
+|-------|----------------|--------|
+| **Local dev** | `.env` in project root, e.g. `REACT_APP_API_URL=https://your-backend.railway.app/api` | All API calls (and auth) use this URL. Restart `npm start` after changing `.env`. |
+| **Local, no .env** | Not set | App falls back to `http://localhost:3000/api` (assumes backend on port 3000). |
+| **Railway deploy** | **Variables** for the frontend service, e.g. `REACT_APP_API_URL=https://your-backend.railway.app/api` | Value is baked into the build; redeploy after changing. |
+
+Used in:
+
+- `src/services/api.ts` – main API client (all non-auth requests).
+- `src/services/authService.ts` – login, register, logout, CSRF, etc.
+
+If `REACT_APP_API_URL` is **not** set in **production** (e.g. frontend and backend on the same Railway app/URL), the app uses the **same origin** + `/api` (e.g. `https://your-app.railway.app/api`).
 
 ## Files Involved
 
