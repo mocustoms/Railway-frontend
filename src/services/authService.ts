@@ -12,17 +12,12 @@ interface RegisterCredentials {
 
 // Get the base URL for API calls (same logic as api.ts)
 const getBaseUrl = (): string => {
-  // In production, try to detect the current hostname if REACT_APP_API_URL is not set
-  if (process.env.NODE_ENV === 'production' && !process.env.REACT_APP_API_URL) {
-    // Use the current window location to determine the API URL
-    if (typeof window !== 'undefined') {
-      const protocol = window.location.protocol;
-      const hostname = window.location.hostname;
-      const port = window.location.port ? `:${window.location.port}` : '';
-      return `${protocol}//${hostname}${port}/api`;
-    }
+  if (process.env.REACT_APP_API_URL) return process.env.REACT_APP_API_URL;
+  if (process.env.NODE_ENV === 'production' && typeof window !== 'undefined') {
+    const { protocol, hostname, port } = window.location;
+    return `${protocol}//${hostname}${port ? `:${port}` : ''}/api`;
   }
-  return process.env.REACT_APP_API_URL || 'https://railway-backend-production-ac2b.up.railway.app/api';
+  return 'http://localhost:3000/api';
 };
 
 // Create a direct axios instance for auth endpoints (they don't use ApiResponse wrapper)

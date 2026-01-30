@@ -1,21 +1,20 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { ApiResponse } from '../types';
 
-// Get the base URL for API calls
+// Get the base URL for API calls.
+// - Local: use .env REACT_APP_API_URL (e.g. your Railway backend).
+// - Railway deploy: set REACT_APP_API_URL in Railway Variables (baked in at build).
+// - Production without env: same-origin /api (if backend is same app).
 const getBaseUrl = (): string => {
-  // In production, try to detect the current hostname if REACT_APP_API_URL is not set
-  // if (process.env.NODE_ENV === 'production' && !process.env.REACT_APP_API_URL) {
-  //   // Use the current window location to determine the API URL
-  //   if (typeof window !== 'undefined') {
-  //     const protocol = window.location.protocol;
-  //     const hostname = window.location.hostname;
-  //     const port = window.location.port ? `:${window.location.port}` : '';
-  //     return `${protocol}//${hostname}${port}/api`;
-  //   }
-  // }
-  console.log('process.env.REACT_APP_API_URL', process.env.REACT_APP_API_URL);
-  return 'https://railway-backend-production-ac2b.up.railway.app/api';
-  // return process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+  if (process.env.REACT_APP_API_URL) {
+    return process.env.REACT_APP_API_URL;
+  }
+  if (process.env.NODE_ENV === 'production' && typeof window !== 'undefined') {
+    const { protocol, hostname, port } = window.location;
+    const portSuffix = port ? `:${port}` : '';
+    return `${protocol}//${hostname}${portSuffix}/api`;
+  }
+  return 'http://localhost:3000/api';
 };
 
 // Create axios instance with default configuration
