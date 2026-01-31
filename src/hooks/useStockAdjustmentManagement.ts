@@ -72,9 +72,9 @@ export const useStockAdjustmentManagement = () => {
       );
     },
     enabled: isAuthenticated,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 0,
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnMount: true,
     refetchOnReconnect: false
   });
 
@@ -194,30 +194,27 @@ export const useStockAdjustmentManagement = () => {
   // Computed values
   const stockAdjustments = useMemo(() => {
     const allAdjustments = stockAdjustmentsResponse?.stockAdjustments || [];
-    
-    // Log first few adjustments to see their store IDs
-    if (allAdjustments.length > 0) {
-      }
-    
-    // If user has no assigned stores, return empty array
-    if (!userStores || userStores.length === 0) {
-      return [];
+
+    // Admin and manager see all company adjustments (matches stat cards; backend already filters by company).
+    // When user has no assigned stores, show all from API.
+    const showAllForRole = user?.role === 'admin' || user?.role === 'manager';
+    const noStoreFilter = !userStores || userStores.length === 0;
+
+    if (showAllForRole || noStoreFilter) {
+      return allAdjustments;
     }
-    
-    const userStoreIds = userStores.map(store => store.id);
-    
-    // Filter adjustments where user has access to the store
-    const filteredAdjustments = allAdjustments.filter(adjustment => {
-      const hasAccess = userStoreIds.includes(adjustment.store_id);
-      
-      if (!hasAccess) {
-        }
-      
-      return hasAccess;
+
+    // Normalize to strings so UUIDs match; support store_id, storeId, or nested store.id from list API
+    const getStoreId = (store: { id?: string; Store?: { id?: string }; store_id?: string }) =>
+      store?.id ?? store?.Store?.id ?? store?.store_id;
+    const userStoreIdSet = new Set(
+      userStores.map(s => String(getStoreId(s as any)).toLowerCase()).filter(Boolean)
+    );
+    return allAdjustments.filter(adjustment => {
+      const adjStoreId = adjustment.store_id ?? (adjustment as { storeId?: string }).storeId ?? (adjustment as { store?: { id?: string } }).store?.id;
+      return adjStoreId != null && userStoreIdSet.has(String(adjStoreId).toLowerCase());
     });
-    
-    return filteredAdjustments;
-  }, [stockAdjustmentsResponse, userStores]);
+  }, [stockAdjustmentsResponse, userStores, user?.role]);
   
   const totalItems = useMemo(() => stockAdjustments.length, [stockAdjustments]);
   const totalPages = useMemo(() => Math.ceil(stockAdjustments.length / pageSize), [stockAdjustments, pageSize]);

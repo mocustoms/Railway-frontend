@@ -232,11 +232,14 @@ export const physicalInventoryModuleConfig = {
   ]
 };
 
+// Default: no date filter so list shows all inventories (user can filter by date if needed).
+// Previously used getCurrentMonthRange() which hid inventories outside the current month.
 export const defaultPhysicalInventoryFilters: PhysicalInventoryFilters = {
   search: '',
   status: 'all',
   storeId: '',
-  ...getCurrentMonthRange()
+  startDate: '',
+  endDate: ''
 };
 
 export const defaultPhysicalInventorySortConfig = {

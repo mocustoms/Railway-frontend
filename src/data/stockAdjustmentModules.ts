@@ -180,12 +180,14 @@ export const stockAdjustmentModuleConfig = {
 };
 
 // Default configurations
+// Default: no date filter so list shows all stock adjustments (user can filter by date if needed).
 export const defaultStockAdjustmentFilters: StockAdjustmentFilters = {
   search: '',
   status: 'all',
   adjustmentType: 'all',
   storeId: '',
-  ...getCurrentMonthRange()
+  startDate: '',
+  endDate: ''
 };
 
 export const defaultStockAdjustmentSortConfig: StockAdjustmentSortConfig = {

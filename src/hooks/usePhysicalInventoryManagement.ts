@@ -75,7 +75,7 @@ export const usePhysicalInventoryManagement = () => {
     enabled: isAuthenticated,
     staleTime: 0, // Always consider data stale to allow refetching after mutations
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnMount: true, // Refetch when opening Physical Inventory page so list is up to date
     refetchOnReconnect: false
   });
 
@@ -239,30 +239,28 @@ export const usePhysicalInventoryManagement = () => {
   // Computed values
   const physicalInventories = useMemo(() => {
     const allInventories = physicalInventoriesResponse?.physicalInventories || [];
-    
-    // Log first few inventories to see their store IDs
-    if (allInventories.length > 0) {
-      }
-    
-    // If user has no assigned stores, return empty array
-    if (!userStores || userStores.length === 0) {
-      return [];
+
+    // Admin and manager see all company inventories (matches stat cards; backend already filters by company).
+    // When user has no assigned stores, show all from API.
+    // Cashiers (and others with assigned stores) only see inventories for their assigned stores.
+    const showAllForRole = user?.role === 'admin' || user?.role === 'manager';
+    const noStoreFilter = !userStores || userStores.length === 0;
+
+    if (showAllForRole || noStoreFilter) {
+      return allInventories;
     }
-    
-    const userStoreIds = userStores.map(store => store.id);
-    
-    // Filter inventories where user has access to the store
-    const filteredInventories = allInventories.filter(inventory => {
-      const hasAccess = userStoreIds.includes(inventory.store_id);
-      
-      if (!hasAccess) {
-        }
-      
-      return hasAccess;
+
+    // Normalize to strings so UUIDs match; support store_id, storeId, or nested store.id from list API
+    const getStoreId = (store: { id?: string; Store?: { id?: string }; store_id?: string }) =>
+      store?.id ?? store?.Store?.id ?? store?.store_id;
+    const userStoreIdSet = new Set(
+      userStores.map(s => String(getStoreId(s as any)).toLowerCase()).filter(Boolean)
+    );
+    return allInventories.filter(inventory => {
+      const invStoreId = inventory.store_id ?? (inventory as { storeId?: string }).storeId ?? (inventory as { store?: { id?: string } }).store?.id;
+      return invStoreId != null && userStoreIdSet.has(String(invStoreId).toLowerCase());
     });
-    
-    return filteredInventories;
-  }, [physicalInventoriesResponse, userStores]);
+  }, [physicalInventoriesResponse, userStores, user?.role]);
   
   const totalItems = useMemo(() => physicalInventories.length, [physicalInventories]);
   const totalPages = useMemo(() => Math.ceil(physicalInventories.length / pageSize), [physicalInventories, pageSize]);
